@@ -722,6 +722,15 @@
                             <option value="none">Cambio Directo</option>
                         </select>
                     </div>
+
+                    <div class="form-group">
+                        <label>🚀 Velocidad de Renderizado (Turbo)</label>
+                        <select id="renderSpeedSelect">
+                            <option value="4" selected>4x Turbo (Ultra-Rápido ~ 40-60 segs)</option>
+                            <option value="2">2x Rápido (Doble velocidad)</option>
+                            <option value="1">1x Normal (Tiempo real)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -1416,6 +1425,14 @@ ${rawText}`;
         function renderLoop() {
             const player = document.getElementById('audioPlayer');
             drawCanvasFrame(player.currentTime);
+            
+            // Update live rendering progress UI if recording
+            const progressBox = document.getElementById('renderProgress');
+            if (progressBox && progressBox.style.display !== 'none' && player.duration > 0) {
+                const pct = Math.min(100, Math.round((player.currentTime / player.duration) * 100));
+                progressBox.innerHTML = `🚀 Procesando video en modo Turbo (${pct}%)... Por favor espera unos segundos.`;
+            }
+
             if (!player.paused && !player.ended) {
                 animFrameId = requestAnimationFrame(renderLoop);
             }
@@ -1429,15 +1446,19 @@ ${rawText}`;
                 return;
             }
 
+            const speed = parseFloat(document.getElementById('renderSpeedSelect')?.value || 1);
             player.currentTime = 0;
+            player.playbackRate = speed; // Set Turbo speed (2x or 4x)
+
             const stream = canvas.captureStream(30); // 30 FPS
 
             // Connect Audio to Stream via Web Audio API
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioCtx.createMediaElementSource(player);
-            const dest = audioCtx.createMediaStreamDestination();
-            source.connect(dest);
-            source.connect(audioCtx.destination);
+            if (!state.audioCtx) {
+                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                state.audioSource = state.audioCtx.createMediaElementSource(player);
+            }
+            const dest = state.audioCtx.createMediaStreamDestination();
+            state.audioSource.connect(dest);
 
             dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
@@ -1454,6 +1475,7 @@ ${rawText}`;
             };
 
             state.mediaRecorder.onstop = () => {
+                player.playbackRate = 1.0; // Reset normal speed
                 const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
                 state.lastVideoBlobUrl = URL.createObjectURL(blob);
                 state.lastVideoBlobName = `video_cristiano_${Date.now()}.webm`;
@@ -1478,6 +1500,7 @@ ${rawText}`;
             renderLoop();
 
             player.onended = () => {
+                player.playbackRate = 1.0;
                 if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
                     state.mediaRecorder.stop();
                 }
