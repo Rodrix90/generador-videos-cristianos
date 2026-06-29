@@ -834,6 +834,14 @@
                         <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('ytDescriptionTextarea')"><i data-lucide="copy"></i> Copiar Descripción</button>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label>Etiquetas / Tags para YouTube (Separadas por coma)</label>
+                    <textarea id="ytTagsTextarea" style="min-height: 90px; font-size: 0.85rem;" readonly></textarea>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                        <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('ytTagsTextarea')"><i data-lucide="copy"></i> Copiar Etiquetas</button>
+                    </div>
+                </div>
             </div>
 
             <div class="action-bar">
@@ -1521,6 +1529,14 @@ ${rawText}`;
         }
 
         // Step 4: YouTube Metadata & Thumbnail Generator
+        const MANDATORY_TAGS = [
+            "Himnos de Gloria y Sion", "Himnario de Gloria", "Rodrigo Gonzalez Alabanza", "Himnos Cristianos Clásicos", 
+            "Alabanzas en Guitarra Acústica", "Música Cristiana para Orar", "Himnos de Adoración", "Himnos de la Fe", 
+            "Cantos de la Iglesia", "Alabanzas Antiguas", "Himnos Congregacionales", "Guitarra Cristiana", 
+            "Himnario Gloria y Triunfo", "Coros Cristianos de Avivamiento", "Música Evangélica Acústica", 
+            "400 Himnos de Gloria", "Himnos con Letra", "Adoración Cristiana 2024", "adoracion Cristiana 2026"
+        ];
+
         function generateYouTubeMetadata() {
             const btnD = document.getElementById('btnDownloadStep4');
             if (btnD && state.lastVideoBlobUrl) {
@@ -1543,8 +1559,15 @@ ${rawText}`;
                 timestamps += `${mins}:${secs} - ${title}...\n`;
             });
 
-            const description = `Gloriosa alabanza y canción cristiana para edificación, oración y adoración.\n\n${timestamps}\n---\nSuscríbete para recibir más música de bendición y alabanzas espirituales.\n\n#MusicaCristiana #Alabanzas #Worship #DiosEsBueno #Jesus #FeCristiana`;
+            const hashtagsBlock = `#himnosdegloria  #guitarracristiana  #alabanzayadoración  #musicacristiana musicacristiana #himnosdesion  #adoracionacustica  #himnariodegloria  #rodrigogonzalez #himnosantiguos\n#himnosantiguos #rodrigogonzalez`;
+
+            const description = `Gloriosa alabanza y canción cristiana para edificación, oración y adoración.\n\n${timestamps}\n---\n${hashtagsBlock}`;
             document.getElementById('ytDescriptionTextarea').value = description;
+
+            const tagsTextarea = document.getElementById('ytTagsTextarea');
+            if (tagsTextarea) {
+                tagsTextarea.value = MANDATORY_TAGS.join(',');
+            }
 
             drawThumbnailCanvas();
         }
@@ -1682,7 +1705,7 @@ ${rawText}`;
                 snippet: {
                     title: title,
                     description: description,
-                    tags: ['MusicaCristiana', 'Alabanza', 'Worship', 'DiosEsBueno', 'Jesus'],
+                    tags: MANDATORY_TAGS,
                     categoryId: '10' // Categoría Música
                 },
                 status: {
