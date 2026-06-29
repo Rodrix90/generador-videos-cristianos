@@ -864,6 +864,17 @@
                             <option value="4">4x Turbo (Solo para pruebas rápidas de vista previa)</option>
                         </select>
                     </div>
+
+                    <div style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                            <input type="checkbox" id="showWatermarkCheckbox" checked onchange="drawCanvasFrame(document.getElementById('audioPlayer').currentTime||0)">
+                            🛡️ Mostrar Marca de Agua (Logo Rodrigo Gonzalez)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                            <input type="checkbox" id="showParticlesCheckbox" checked onchange="drawCanvasFrame(document.getElementById('audioPlayer').currentTime||0)">
+                            ✨ Partículas Celestiales Flotantes (Efecto Oro)
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -949,6 +960,27 @@
                         </button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Herramientas Profesionales de Crecimiento -->
+            <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid var(--primary); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem;">
+                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="sparkles"></i> Herramientas Profesionales de Crecimiento y Alcance
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Genera contenido viral en formato vertical para Shorts/Reels y traduce tus metadatos para llegar a audiencias internacionales.</p>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-secondary btn-sm" onclick="exportShortsClip()" id="btnExportShorts">
+                        <i data-lucide="smartphone"></i> 📱 Exportar Clip para Shorts / Reels (Vertical 9:16)
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="translateMetadata('en')">
+                        🇺🇸 Traducir Metadatos a Inglés (English)
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="translateMetadata('pt')">
+                        🇧🇷 Traducir Metadatos a Portugués (Português)
+                    </button>
+                </div>
+                <div id="shortsRenderProgress" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 700; color: var(--primary); display: none;"></div>
             </div>
 
             <div class="yt-box">
@@ -1651,6 +1683,21 @@ ${rawText}`;
                     ctx.strokeText(line, canvas.width / 2, y);
                 });
             }
+
+            // Draw Celestial Particles if enabled
+            if (document.getElementById('showParticlesCheckbox')?.checked) {
+                drawParticles(ctx, canvas.width, canvas.height);
+            }
+
+            // Draw Watermark if enabled
+            if (document.getElementById('showWatermarkCheckbox')?.checked && watermarkImg.complete && watermarkImg.naturalWidth !== 0) {
+                ctx.save();
+                ctx.globalAlpha = 0.85;
+                const wmW = 480;
+                const wmH = 125;
+                ctx.drawImage(watermarkImg, canvas.width - wmW - 60, 60, wmW, wmH);
+                ctx.restore();
+            }
         }
 
         let animFrameId;
@@ -2309,6 +2356,155 @@ ${rawText}`;
                     ytBox.scrollIntoView({ behavior: 'smooth' });
                 }
             };
+        }
+
+        // Professional Addons: Watermark, Particles, Shorts Export & Translation
+        const watermarkImg = new Image();
+        watermarkImg.src = 'watermark.png';
+
+        let particles = [];
+        function initParticles(w, h) {
+            particles = [];
+            for (let i = 0; i < 45; i++) {
+                particles.push({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    radius: Math.random() * 4 + 2,
+                    speedY: Math.random() * 0.8 + 0.3,
+                    alpha: Math.random() * 0.6 + 0.2
+                });
+            }
+        }
+
+        function drawParticles(targetCtx, w, h) {
+            if (particles.length === 0) initParticles(w, h);
+            particles.forEach(p => {
+                p.y -= p.speedY;
+                if (p.y < 0) p.y = h;
+                targetCtx.beginPath();
+                targetCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                targetCtx.fillStyle = `rgba(245, 158, 11, ${p.alpha})`;
+                targetCtx.fill();
+            });
+        }
+
+        async function exportShortsClip() {
+            const btn = document.getElementById('btnExportShorts');
+            const progress = document.getElementById('shortsRenderProgress');
+            progress.style.display = 'block';
+            progress.innerText = '📱 Renderizando clip vertical para Shorts/Reels (1080x1920)...';
+            if (btn) btn.disabled = true;
+
+            const sCanvas = document.createElement('canvas');
+            sCanvas.width = 1080;
+            sCanvas.height = 1920;
+            const sCtx = sCanvas.getContext('2d');
+
+            const player = document.getElementById('audioPlayer');
+            const stream = sCanvas.captureStream(30);
+            if (!state.audioCtx) {
+                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                state.audioSource = state.audioCtx.createMediaElementSource(player);
+            }
+            const dest = state.audioCtx.createMediaStreamDestination();
+            state.audioSource.connect(dest);
+            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+
+            const recordedChunks = [];
+            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 8000000 });
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+            player.currentTime = 0;
+            mediaRecorder.start();
+            player.play();
+
+            let animActive = true;
+            function drawShortFrame() {
+                if (!animActive) return;
+                const curTime = player.currentTime;
+                let activeIndex = state.segments.findIndex(s => curTime >= s.startTime && curTime <= s.endTime);
+                if (activeIndex === -1 && state.segments.length > 0) activeIndex = 0;
+
+                const seg = state.segments[activeIndex];
+                const img = loadedImages[activeIndex];
+
+                sCtx.fillStyle = '#0b0d17';
+                sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+
+                if (img && img.complete && img.naturalWidth !== 0) {
+                    sCtx.drawImage(img, (sCanvas.width - sCanvas.height * (img.naturalWidth/img.naturalHeight))/2, 0, sCanvas.height * (img.naturalWidth/img.naturalHeight), sCanvas.height);
+                    const grad = sCtx.createLinearGradient(0, 0, 0, sCanvas.height);
+                    grad.addColorStop(0, 'rgba(0,0,0,0.4)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.8)');
+                    sCtx.fillStyle = grad;
+                    sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+                }
+
+                if (seg && seg.text) {
+                    const textLines = seg.text.split('\n');
+                    sCtx.textAlign = 'center';
+                    sCtx.textBaseline = 'middle';
+                    sCtx.font = "bold 72px 'Montserrat', sans-serif";
+                    const lineHeight = 95;
+                    const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
+                    textLines.forEach((line, idx) => {
+                        const y = startY + (idx * lineHeight);
+                        sCtx.shadowColor = '#f59e0b';
+                        sCtx.shadowBlur = 30;
+                        sCtx.fillStyle = '#ffffff';
+                        sCtx.fillText(line, sCanvas.width / 2, y);
+                        sCtx.shadowBlur = 0;
+                        sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
+                        sCtx.lineWidth = 6;
+                        sCtx.strokeText(line, sCanvas.width / 2, y);
+                    });
+                }
+
+                // Draw Watermark on Shorts
+                if (watermarkImg.complete && watermarkImg.naturalWidth !== 0) {
+                    sCtx.save();
+                    sCtx.globalAlpha = 0.85;
+                    sCtx.drawImage(watermarkImg, (sCanvas.width - 400)/2, 120, 400, 104);
+                    sCtx.restore();
+                }
+
+                if (animActive) requestAnimationFrame(drawShortFrame);
+            }
+            drawShortFrame();
+
+            player.onended = () => {
+                animActive = false;
+                mediaRecorder.stop();
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = `short_vertical_${Date.now()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                progress.innerHTML = `<span style="color:var(--success);">¡Short Vertical exportado con éxito!</span>`;
+                if (btn) btn.disabled = false;
+            };
+        }
+
+        function translateMetadata(lang) {
+            const titleEl = document.getElementById('ytTitleInput');
+            const descEl = document.getElementById('ytDescriptionTextarea');
+            if (!titleEl || !descEl) return;
+
+            if (lang === 'en') {
+                titleEl.value = titleEl.value.replace('Himno N°', 'Hymn No.').replace('Música Cristiana', 'Christian Worship Music').replace('Alabanza de Adoración', 'Worship Song');
+                descEl.value = `📖 About this Hymn: Interpretation by Rodrigo Gonzalez. Sacred Christian worship music for prayer and meditation.\n\n` + descEl.value;
+                alert('¡Metadatos traducidos al Inglés (English)!');
+            } else if (lang === 'pt') {
+                titleEl.value = titleEl.value.replace('Himno N°', 'Hino N°').replace('Música Cristiana', 'Música Cristã').replace('Alabanza de Adoración', 'Louvor e Adoração');
+                descEl.value = `📖 Sobre este Hino: Interpretação de Rodrigo Gonzalez. Linda música cristã de louvor e adoração para oração.\n\n` + descEl.value;
+                alert('¡Metadatos traducidos al Portugués (Português)!');
+            }
         }
     </script>
 </body>
