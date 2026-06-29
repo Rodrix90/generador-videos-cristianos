@@ -595,12 +595,46 @@
                     </div>
                 </div>
 
-                <!-- Lyrics Input & Hymn Number -->
+                <!-- Lyrics Input & Song Classification -->
                 <div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label>Número de Himno (Opcional, ej: 386)</label>
-                        <input type="text" id="hymnNumberInput" placeholder="Ej: 386 o 172" style="font-weight: 700; color: var(--accent);">
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label style="color: var(--accent);">🎵 Tipo de Canción</label>
+                            <select id="songTypeSelect" onchange="toggleSongTypeFields()">
+                                <option value="himno" selected>Himno Tradicional (Con número / Himnario)</option>
+                                <option value="alabanza">Alabanza / Adoración General (Sin número)</option>
+                            </select>
+                        </div>
+
+                        <!-- Campos para Himnos -->
+                        <div id="himnoFieldsGroup" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 0.8rem;">Colección / Himnario</label>
+                                <select id="hymnCollectionSelect" style="font-size: 0.85rem; padding: 0.5rem;">
+                                    <option value="Himnos de Gloria">Himnos de Gloria</option>
+                                    <option value="Himnos de Sion">Himnos de Sion</option>
+                                    <option value="Himnario Gloria y Triunfo">Himnario Gloria y Triunfo</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 0.8rem;">Número de Himno</label>
+                                <input type="text" id="hymnNumberInput" placeholder="Ej: 12 o 386" style="font-weight: 700; color: var(--accent); padding: 0.5rem; font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+                        <!-- Campos para Alabanzas -->
+                        <div id="alabanzaFieldsGroup" style="display: none;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 0.8rem;">Tipo / Subgénero</label>
+                                <select id="alabanzaTypeSelect" style="font-size: 0.85rem; padding: 0.5rem;">
+                                    <option value="Alabanza de Adoración">Alabanza de Adoración</option>
+                                    <option value="Alabanza Congregacional">Alabanza Congregacional</option>
+                                    <option value="Adoración Cristiana">Adoración Cristiana</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="form-group">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                             <label>Letra de la Canción</label>
@@ -1548,6 +1582,19 @@ ${rawText}`;
             "400 Himnos de Gloria", "Himnos con Letra", "Adoración Cristiana 2024", "adoracion Cristiana 2026"
         ];
 
+        function toggleSongTypeFields() {
+            const type = document.getElementById('songTypeSelect')?.value || 'himno';
+            const himnoGroup = document.getElementById('himnoFieldsGroup');
+            const alabanzaGroup = document.getElementById('alabanzaFieldsGroup');
+            if (type === 'himno') {
+                if (himnoGroup) himnoGroup.style.display = 'grid';
+                if (alabanzaGroup) alabanzaGroup.style.display = 'none';
+            } else {
+                if (himnoGroup) himnoGroup.style.display = 'none';
+                if (alabanzaGroup) alabanzaGroup.style.display = 'block';
+            }
+        }
+
         function generateYouTubeMetadata() {
             const btnD = document.getElementById('btnDownloadStep4');
             if (btnD && state.lastVideoBlobUrl) {
@@ -1556,54 +1603,71 @@ ${rawText}`;
 
             const rawSongName = state.lyrics.split('\n')[0].replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '').trim() || 'Alabanza Cristiana';
             const cleanSongName = rawSongName.charAt(0).toUpperCase() + rawSongName.slice(1);
-            const songHashtag = cleanSongName.replace(/\s+/g, '');
-            const hymnNum = document.getElementById('hymnNumberInput')?.value.trim() || '';
+            const songType = document.getElementById('songTypeSelect')?.value || 'himno';
 
-            // 1. Título optimizado según presencia de número de himno
-            if (hymnNum) {
-                document.getElementById('ytTitleInput').value = `${cleanSongName} - Himno ${hymnNum} | Música Cristiana`;
-            } else {
-                document.getElementById('ytTitleInput').value = `${cleanSongName} + Letra Completa 🎵 Himnos Antiguos Cristianos`;
-            }
-            
-            const thumbInput = document.getElementById('thumbTextInput');
-            if (thumbInput && !thumbInput.value) {
-                thumbInput.value = hymnNum ? `${cleanSongName.toUpperCase()} - HIMNO ${hymnNum}` : cleanSongName.toUpperCase();
-            }
-
-            // 2. Timestamps / Momentos del video optimizados para SEO
-            let timestamps = '⏳ Momentos del Video:\n0:00 Introducción a ' + cleanSongName + '\n';
-            state.segments.forEach(seg => {
-                const mins = Math.floor(seg.startTime / 60);
-                const secs = Math.floor(seg.startTime % 60).toString().padStart(2, '0');
-                const linePreview = seg.text.split('\n')[0].substring(0, 35);
-                timestamps += `${mins}:${secs} ${cleanSongName} - ${linePreview}\n`;
-            });
-
-            // 3. Estructura de Descripción de Platino con número de himno
-            const hymnTextRef = hymnNum ? ` (Himno número ${hymnNum})` : '';
-            const hymnHash = hymnNum ? ` #Himno${hymnNum}` : '';
-            const hashtagsHeader = `#MusicaCristiana #HimnosAntiguos #${songHashtag}${hymnHash}`;
             const hashtagsFooter = `#himnosdegloria  #guitarracristiana  #alabanzayadoración  #musicacristiana musicacristiana #himnosdesion  #adoracionacustica  #himnariodegloria  #rodrigogonzalez #himnosantiguos\n#himnosantiguos #rodrigogonzalez`;
 
-            const description = `En este video escucharemos ${cleanSongName}${hymnTextRef}. Esta hermosa pieza de la música cristiana tradicional nos invita a la adoración profunda y es ideal para acompañar tu tiempo de oración.\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\nQue esta melodía sea de gran bendición. Si este himno tocó tu corazón, te invito a suscribirte para seguir compartiendo la mejor música de adoración.\n\n${timestamps}\n🎵 Sigue escuchando más himnos:\nHimnos Tradicionales: https://youtube.com\nAlabanzas para Orar: https://youtube.com\n\n${hashtagsHeader}\n${hashtagsFooter}`;
+            if (songType === 'himno') {
+                // 1. PLANTILLA PARA HIMNOS (Con número)
+                const collection = document.getElementById('hymnCollectionSelect')?.value || 'Himnos de Gloria';
+                const hymnNum = document.getElementById('hymnNumberInput')?.value.trim() || '12';
 
-            document.getElementById('ytDescriptionTextarea').value = description;
+                document.getElementById('ytTitleInput').value = `${cleanSongName} - Himno N° ${hymnNum} (${collection}) - Rodrigo Gonzalez`;
 
-            // 4. Etiquetas obligatorias
-            const tagsTextarea = document.getElementById('ytTagsTextarea');
-            if (tagsTextarea) {
-                let tagsList = [...MANDATORY_TAGS];
-                if (hymnNum) {
-                    tagsList.unshift(`Himno ${hymnNum}`, `Himno N° ${hymnNum}`, `${cleanSongName} Himno ${hymnNum}`);
+                const thumbInput = document.getElementById('thumbTextInput');
+                if (thumbInput && !thumbInput.value) {
+                    thumbInput.value = `${cleanSongName.toUpperCase()} - HIMNO ${hymnNum}`;
                 }
-                tagsTextarea.value = tagsList.join(',');
+
+                let timestamps = '⏳ Momentos Clave:\n0:00 Introducción a ' + cleanSongName + '\n';
+                state.segments.forEach(seg => {
+                    const mins = Math.floor(seg.startTime / 60);
+                    const secs = Math.floor(seg.startTime % 60).toString().padStart(2, '0');
+                    const linePreview = seg.text.split('\n')[0].substring(0, 35);
+                    timestamps += `${mins}:${secs} ${cleanSongName} - ${linePreview}\n`;
+                });
+
+                const description = `📖 Sobre este Himno: Interpretación del Himno N° ${hymnNum} titulado "${cleanSongName}", perteneciente a la colección de ${collection}. Un canto clásico que nos invita a la reflexión y al fortalecimiento de nuestra fe.\n\n🎵 Detalles de la Obra:\nTítulo: ${cleanSongName}\nHimnario: ${collection}\nInterpretación: Rodrigo Gonzalez\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\n${timestamps}\n✨ Suscríbete para más himnos y alabanzas: https://youtube.com/@RodrigoGonzalez\n\n#MúsicaCristiana #HimnosDeSion #RodrigoGonzalez\n${hashtagsFooter}`;
+
+                document.getElementById('ytDescriptionTextarea').value = description;
+
+                const pinnedComment = document.getElementById('ytPinnedCommentTextarea');
+                if (pinnedComment) {
+                    pinnedComment.value = `¡Bendiciones a todos! 🙏 ¿Cuál es su estrofa favorita de este himno o qué otra alabanza les gustaría que grabe para el próximo video? Los leo aquí abajo.`;
+                }
+            } else {
+                // 2. PLANTILLA PARA ALABANZAS (Sin número)
+                const alabanzaType = document.getElementById('alabanzaTypeSelect')?.value || 'Alabanza de Adoración';
+
+                document.getElementById('ytTitleInput').value = `${cleanSongName} - ${alabanzaType} - Rodrigo Gonzalez`;
+
+                const thumbInput = document.getElementById('thumbTextInput');
+                if (thumbInput && !thumbInput.value) {
+                    thumbInput.value = cleanSongName.toUpperCase();
+                }
+
+                let timestamps = '⏳ Momentos del Video:\n0:00 Introducción a ' + cleanSongName + '\n';
+                state.segments.forEach(seg => {
+                    const mins = Math.floor(seg.startTime / 60);
+                    const secs = Math.floor(seg.startTime % 60).toString().padStart(2, '0');
+                    const linePreview = seg.text.split('\n')[0].substring(0, 35);
+                    timestamps += `${mins}:${secs} ${cleanSongName} - ${linePreview}\n`;
+                });
+
+                const description = `🙏 Momento de Adoración: Te comparto esta alabanza titulada "${cleanSongName}". Mi deseo es que esta canción sea una herramienta para tu tiempo a solas con Dios y traiga paz a tu corazón.\n\n🎼 Información de la Canción:\nTema: ${cleanSongName}\nGénero: Alabanza / Adoración Cristiana\nVoz: Rodrigo Gonzalez\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\n${timestamps}\n💬 Dime en los comentarios: ¿Cuál es tu parte favorita de esta alabanza? Me encantaría orar por ti, deja tu petición aquí abajo.\n\n🔔 No te pierdas mis próximos videos: https://youtube.com/@RodrigoGonzalez\n\n#MúsicaCristiana #AlabanzayAdoración #RodrigoGonzalez\n${hashtagsFooter}`;
+
+                document.getElementById('ytDescriptionTextarea').value = description;
+
+                const pinnedComment = document.getElementById('ytPinnedCommentTextarea');
+                if (pinnedComment) {
+                    pinnedComment.value = `🙏 ¿Cuál es tu parte favorita de esta alabanza? Me encantaría orar por ti, deja tu petición aquí abajo y estaremos intercediendo juntos.`;
+                }
             }
 
-            // 5. Comentario Fijado del Canal
-            const pinnedCommentTextarea = document.getElementById('ytPinnedCommentTextarea');
-            if (pinnedCommentTextarea) {
-                pinnedCommentTextarea.value = `¡Bendiciones a todos! 🙏 ¿Cuál es su estrofa favorita de este himno o qué otra alabanza les gustaría que grabe para el próximo video? Los leo aquí abajo.`;
+            // Etiquetas obligatorias
+            const tagsTextarea = document.getElementById('ytTagsTextarea');
+            if (tagsTextarea) {
+                tagsTextarea.value = MANDATORY_TAGS.join(',');
             }
 
             drawThumbnailCanvas();
