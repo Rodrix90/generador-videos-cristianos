@@ -524,6 +524,42 @@
             display: flex;
             gap: 0.5rem;
         }
+
+        /* Top Mode Switch Tabs */
+        .top-tab-bar {
+            max-width: 1200px;
+            margin: 1.25rem auto 0;
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .top-tab-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: all 0.25s ease;
+        }
+
+        .top-tab-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-main);
+        }
+
+        .top-tab-btn.active {
+            background: var(--accent);
+            color: #000000;
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -536,7 +572,7 @@
             </div>
             <div>
                 <div class="logo-title">Generador de Videos Cristianos</div>
-                <div style="font-size: 0.75rem; color: var(--text-muted);">Creación de Clips e Himnos para YouTube</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Creación de Clips, Himnos y Compilaciones para YouTube</div>
             </div>
         </div>
         <div class="header-actions">
@@ -546,8 +582,18 @@
         </div>
     </header>
 
+    <!-- Top Mode Navigation Bar -->
+    <div class="top-tab-bar">
+        <button class="top-tab-btn active" id="tabBtnSingle" onclick="switchMainMode('single')">
+            <i data-lucide="music"></i> 🎵 Video Individual (Canción con Letra)
+        </button>
+        <button class="top-tab-btn" id="tabBtnCompilation" onclick="switchMainMode('compilation')">
+            <i data-lucide="disc"></i> 🕊️ Compilación de Oración (Multi-MP3 1 Hora+)
+        </button>
+    </div>
+
     <!-- Main Content -->
-    <main>
+    <main id="mainSingleMode">
         <!-- Stepper Navigation -->
         <nav class="stepper">
             <div class="step-item active" id="nav-step1" onclick="goToStep(1)">
@@ -900,6 +946,107 @@
         </section>
     </main>
 
+    <!-- Main Content for Compilation Mode -->
+    <main id="mainCompilationMode" style="display: none;">
+        <section class="view-content active" style="display: block;">
+            <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">🕊️ Compilación de Música Cristiana para Orar (1 Hora+)</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Carga múltiples archivos MP3 de alabanza para crear un video continuo de larga duración con fondos celestiales e índice automático de tiempos.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- Uploader & Tracklist -->
+                <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="music-4"></i> Lista de Canciones de la Compilación
+                    </h3>
+                    
+                    <div class="drop-zone" onclick="document.getElementById('compilationAudioInput').click()" style="padding: 1.5rem 1rem; margin-bottom: 1rem;">
+                        <i data-lucide="folder-plus" class="drop-icon" style="width: 36px; height: 36px;"></i>
+                        <div>
+                            <strong style="display: block; font-size: 1rem;">Selecciona varios archivos MP3</strong>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Puedes seleccionar 5, 10 o más canciones juntas</span>
+                        </div>
+                        <input type="file" id="compilationAudioInput" multiple accept="audio/*" style="display: none;" onchange="handleCompilationAudioSelect(event)">
+                    </div>
+
+                    <div id="compilationTrackList" style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 0.85rem;">No has agregado canciones aún.</div>
+                    </div>
+
+                    <div id="compilationTotalDuration" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-weight: 700; color: var(--accent); font-size: 0.9rem;">
+                        Duración Total Estimada: 0 min 0 seg
+                    </div>
+                </div>
+
+                <!-- Config & Render controls -->
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="sliders"></i> Configuración de Fondo y Estilo
+                        </h3>
+                        
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Título Principal de la Compilación</label>
+                            <input type="text" id="compTitleInput" value="1 Hora de Música Cristiana para Orar y Meditar">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Estilo de Fondos Celestiales (Prompt IA)</label>
+                            <textarea id="compPromptInput" style="min-height: 70px; font-size: 0.85rem;">Sacred Christian prayer aesthetic, peaceful mountains at sunset, glowing golden cross, bible open on wooden table, heavenly rays of light, 4K UHD</textarea>
+                        </div>
+
+                        <button class="btn btn-secondary btn-sm" onclick="generateCompilationBackgrounds()" id="btnGenCompImg" style="width: 100%;">
+                            <i data-lucide="image"></i> Generar Fondos Celestiales
+                        </button>
+                    </div>
+
+                    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid var(--accent); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="video"></i> Renderizado de Video 4K
+                        </h3>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Se procesará toda la secuencia de MP3s de corrido para exportar tu archivo WebM listo para YouTube.</p>
+
+                        <button class="btn btn-accent" onclick="startCompilationRecording()" id="btnStartCompRecord" style="width: 100%; justify-content: center;">
+                            <i data-lucide="film"></i> Renderizar y Exportar Video de Oración (.webm)
+                        </button>
+
+                        <div id="compilationRenderProgress" style="text-align: center; margin-top: 0.75rem; font-weight: 700; color: var(--accent); display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata Output Box for YouTube -->
+            <div class="yt-box" id="compilationYtBox" style="display: none;">
+                <h3 style="font-family: var(--font-title); color: var(--accent); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="youtube"></i> Metadatos Listos para Publicar en YouTube
+                </h3>
+
+                <div class="form-group">
+                    <label>Título del Video</label>
+                    <div class="copy-input-group">
+                        <input type="text" id="compYtTitleInput">
+                        <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('compYtTitleInput')"><i data-lucide="copy"></i> Copiar</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción con Capítulos de Tiempo Automáticos (Timestamps de Canciones)</label>
+                    <textarea id="compYtDescriptionTextarea" style="min-height: 250px;"></textarea>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                        <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('compYtDescriptionTextarea')"><i data-lucide="copy"></i> Copiar Descripción</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Etiquetas / Tags para YouTube</label>
+                    <textarea id="compYtTagsTextarea" style="min-height: 80px; font-size: 0.85rem;" readonly></textarea>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                        <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('compYtTagsTextarea')"><i data-lucide="copy"></i> Copiar Etiquetas</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-box">
@@ -968,7 +1115,9 @@
             },
             isPlaying: false,
             mediaRecorder: null,
-            recordedChunks: []
+            recordedChunks: [],
+            compilationTracks: [], // { file, name, duration, url }
+            compilationImages: []
         };
 
         // Initialize App
@@ -1861,6 +2010,255 @@ ${rawText}`;
                 statusBox.style.display = 'none';
                 alert('Error al transferir el video a YouTube: ' + err.message);
             }
+        }
+
+        // Main Mode Navigation (Single Video vs Compilation)
+        function switchMainMode(mode) {
+            const btnSingle = document.getElementById('tabBtnSingle');
+            const btnComp = document.getElementById('tabBtnCompilation');
+            const mainSingle = document.getElementById('mainSingleMode');
+            const mainComp = document.getElementById('mainCompilationMode');
+
+            if (mode === 'single') {
+                btnSingle.classList.add('active');
+                btnComp.classList.remove('active');
+                mainSingle.style.display = 'block';
+                mainComp.style.display = 'none';
+            } else {
+                btnComp.classList.add('active');
+                btnSingle.classList.remove('active');
+                mainComp.style.display = 'block';
+                mainSingle.style.display = 'none';
+            }
+        }
+
+        async function handleCompilationAudioSelect(event) {
+            const files = Array.from(event.target.files);
+            if (!files || files.length === 0) return;
+
+            for (const file of files) {
+                const url = URL.createObjectURL(file);
+                const duration = await getAudioDuration(url);
+                const name = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, " ").trim();
+                state.compilationTracks.push({ file, name, duration, url });
+            }
+            renderCompilationTracklist();
+        }
+
+        function getAudioDuration(url) {
+            return new Promise((resolve) => {
+                const tempAudio = new Audio();
+                tempAudio.onloadedmetadata = () => resolve(tempAudio.duration || 0);
+                tempAudio.onerror = () => resolve(0);
+                tempAudio.src = url;
+            });
+        }
+
+        function renderCompilationTracklist() {
+            const container = document.getElementById('compilationTrackList');
+            if (!container) return;
+
+            if (state.compilationTracks.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 0.85rem;">No has agregado canciones aún.</div>`;
+                document.getElementById('compilationTotalDuration').innerText = `Duración Total Estimada: 0 min 0 seg`;
+                return;
+            }
+
+            let html = '';
+            let totalSecs = 0;
+
+            state.compilationTracks.forEach((track, idx) => {
+                totalSecs += track.duration;
+                const mins = Math.floor(track.duration / 60);
+                const secs = Math.floor(track.duration % 60).toString().padStart(2, '0');
+                html += `
+                    <div style="background: rgba(255,255,255,0.05); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden;">
+                            <span style="font-weight: 700; color: var(--accent); min-width: 20px;">${idx + 1}.</span>
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px;">${track.name}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="color: var(--text-muted); font-size: 0.8rem;">${mins}:${secs}</span>
+                            <button onclick="removeCompilationTrack(${idx})" style="background: none; border: none; color: var(--danger); cursor: pointer;"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            lucide.createIcons();
+
+            const totalMins = Math.floor(totalSecs / 60);
+            const remSecs = Math.floor(totalSecs % 60).toString().padStart(2, '0');
+            document.getElementById('compilationTotalDuration').innerText = `Duración Total Estimada: ${totalMins} min ${remSecs} seg (${state.compilationTracks.length} canciones)`;
+        }
+
+        function removeCompilationTrack(index) {
+            state.compilationTracks.splice(index, 1);
+            renderCompilationTracklist();
+        }
+
+        async function generateCompilationBackgrounds() {
+            const btn = document.getElementById('btnGenCompImg');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Generando Fondos 4K...`;
+                lucide.createIcons();
+            }
+
+            const promptText = document.getElementById('compPromptInput')?.value || 'Sacred Christian prayer aesthetic, peaceful mountains at sunset, glowing golden cross, bible open on wooden table, heavenly rays of light, 4K UHD';
+            const cleanPrompt = promptText.replace(/[^a-zA-Z0-9 ,.-]/g, '');
+
+            state.compilationImages = [];
+            for (let i = 0; i < 6; i++) {
+                const seed = Math.floor(Math.random() * 100000);
+                const rawUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1920&height=1080&nologo=true&seed=${seed}`;
+                await new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.onload = () => { state.compilationImages.push(img); resolve(); };
+                    img.onerror = () => resolve();
+                    img.src = rawUrl;
+                });
+            }
+
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="check"></i> ¡${state.compilationImages.length} Fondos Celestiales Listos!`;
+                lucide.createIcons();
+            }
+        }
+
+        async function startCompilationRecording() {
+            if (state.compilationTracks.length === 0) {
+                alert('Por favor agrega al menos 1 archivo MP3 para la compilación.');
+                return;
+            }
+
+            const btn = document.getElementById('btnStartCompRecord');
+            const progressBox = document.getElementById('compilationRenderProgress');
+            progressBox.style.display = 'block';
+            progressBox.innerText = 'Iniciando renderizado de la compilación de oración...';
+            if (btn) btn.disabled = true;
+
+            if (state.compilationImages.length === 0) {
+                await generateCompilationBackgrounds();
+            }
+
+            const compCanvas = document.createElement('canvas');
+            compCanvas.width = 3840;
+            compCanvas.height = 2160;
+            const compCtx = compCanvas.getContext('2d');
+
+            const stream = compCanvas.captureStream(30);
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const dest = audioCtx.createMediaStreamDestination();
+            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+
+            const recordedChunks = [];
+            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 15000000 });
+
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+            let timestampsText = '⏳ Capítulos y Lista de Canciones:\n';
+            let accumulatedSecs = 0;
+
+            mediaRecorder.start();
+
+            // Render loop animation background for compilation
+            let animActive = true;
+            let currentImgIdx = 0;
+            let lastSlideTime = Date.now();
+
+            function drawCompFrame() {
+                if (!animActive) return;
+                const now = Date.now();
+                if (now - lastSlideTime > 25000 && state.compilationImages.length > 0) { // Change slide every 25s
+                    currentImgIdx = (currentImgIdx + 1) % state.compilationImages.length;
+                    lastSlideTime = now;
+                }
+
+                const bgImg = state.compilationImages[currentImgIdx];
+                compCtx.fillStyle = '#0b0d17';
+                compCtx.fillRect(0, 0, compCanvas.width, compCanvas.height);
+
+                if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
+                    compCtx.drawImage(bgImg, 0, 0, compCanvas.width, compCanvas.height);
+                    const grad = compCtx.createLinearGradient(0, 0, 0, compCanvas.height);
+                    grad.addColorStop(0, 'rgba(0,0,0,0.3)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+                    compCtx.fillStyle = grad;
+                    compCtx.fillRect(0, 0, compCanvas.width, compCanvas.height);
+                }
+
+                // Title Overlay
+                const mainTitle = document.getElementById('compTitleInput')?.value.toUpperCase() || 'MÚSICA CRISTIANA PARA ORAR';
+                compCtx.textAlign = 'center';
+                compCtx.textBaseline = 'middle';
+                compCtx.font = "900 110px 'Cinzel', serif";
+                compCtx.shadowColor = '#f59e0b';
+                compCtx.shadowBlur = 40;
+                compCtx.fillStyle = '#ffffff';
+                compCtx.fillText(mainTitle, compCanvas.width / 2, compCanvas.height / 2);
+
+                compCtx.shadowBlur = 0;
+                compCtx.strokeStyle = 'rgba(0,0,0,0.85)';
+                compCtx.lineWidth = 8;
+                compCtx.strokeText(mainTitle, compCanvas.width / 2, compCanvas.height / 2);
+
+                if (animActive) requestAnimationFrame(drawCompFrame);
+            }
+
+            drawCompFrame();
+
+            // Play tracks sequentially
+            for (let i = 0; i < state.compilationTracks.length; i++) {
+                const track = state.compilationTracks[i];
+                const mins = Math.floor(accumulatedSecs / 60);
+                const secs = Math.floor(accumulatedSecs % 60).toString().padStart(2, '0');
+                timestampsText += `${mins}:${secs} ${track.name}\n`;
+
+                progressBox.innerText = `Reproduciendo y compilando pista ${i + 1} de ${state.compilationTracks.length}: "${track.name}"...`;
+
+                const audioEl = new Audio(track.url);
+                const source = audioCtx.createMediaElementSource(audioEl);
+                source.connect(dest);
+
+                await new Promise((resolve) => {
+                    audioEl.play();
+                    audioEl.onended = () => resolve();
+                });
+
+                accumulatedSecs += track.duration;
+            }
+
+            animActive = false;
+            mediaRecorder.stop();
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = `compilacion_oracion_4k_${Date.now()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+
+                progressBox.innerHTML = `<span style="color:var(--success);">¡Compilación 4K exportada con éxito!</span>`;
+                if (btn) btn.disabled = false;
+
+                // Show YouTube Metadata Box
+                const ytBox = document.getElementById('compilationYtBox');
+                if (ytBox) {
+                    ytBox.style.display = 'flex';
+                    const mainTitle = document.getElementById('compTitleInput')?.value || '1 Hora de Música Cristiana para Orar y Meditar';
+                    document.getElementById('compYtTitleInput').value = `${mainTitle} - Rodrigo Gonzalez`;
+                    document.getElementById('compYtDescriptionTextarea').value = `🕊️ Te comparto esta compilación especial de música cristiana tradicional para acompañar tus momentos a solas con Dios, oración y meditación espiritual.\n\n${timestampsText}\n---\n✨ Suscríbete para recibir más música de bendición y adoración profunda.\n\n#musicacristiana #adoracionacustica #oracion #rodrigogonzalez #himnosantiguos`;
+                    document.getElementById('compYtTagsTextarea').value = `musica cristiana para orar,1 hora de musica cristiana,oracion matutina,alabanzas de adoracion,himnos de gloria,rodrigo gonzalez,adoracion acustica`;
+                    ytBox.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
         }
     </script>
 </body>
