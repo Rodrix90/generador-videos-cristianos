@@ -707,24 +707,24 @@
                 <!-- Canvas Video Preview -->
                 <div>
                     <div class="preview-box">
-                        <canvas id="videoCanvas" width="1920" height="1080"></canvas>
+                        <canvas id="videoCanvas" width="3840" height="2160"></canvas>
                     </div>
                     <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;">
                         <button class="btn btn-secondary" onclick="toggleCanvasPlay()" id="btnPlayPreview">
                             <i data-lucide="play" id="iconPlay"></i> Reproducir Previa
                         </button>
                         <button class="btn btn-accent" onclick="startRecordingVideo()" id="btnRecord">
-                            <i data-lucide="video"></i> Grabar y Descargar Video (.webm)
+                            <i data-lucide="video"></i> Grabar y Descargar Video 4K (.webm)
                         </button>
                     </div>
                     <div id="renderProgress" style="text-align: center; margin-top: 0.75rem; font-weight: 600; color: var(--accent); display: none;">
-                        Grabando video... Por favor espera a que finalice la canción.
+                        Grabando video 4K... Por favor espera a que finalice la canción.
                     </div>
                 </div>
 
                 <!-- Style Controls -->
                 <div class="style-controls">
-                    <h3 style="font-family: var(--font-title); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Estilo de Subtítulos</h3>
+                    <h3 style="font-family: var(--font-title); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Estilo de Subtítulos (4K UHD)</h3>
                     
                     <div class="form-group">
                         <label>Tipografía (Google Fonts)</label>
@@ -737,8 +737,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Tamaño de Texto</label>
-                        <input type="range" id="fontSizeRange" min="36" max="90" value="64" oninput="updateCanvasStyle()">
+                        <label>Tamaño de Texto (4K)</label>
+                        <input type="range" id="fontSizeRange" min="70" max="220" value="130" oninput="updateCanvasStyle()">
                     </div>
 
                     <div class="color-pickers">
@@ -954,7 +954,7 @@
             segments: [], // { text, startTime, endTime, prompt, imageUrl }
             canvasStyle: {
                 fontFamily: "'Montserrat', sans-serif",
-                fontSize: 64,
+                fontSize: 130,
                 textColor: '#ffffff',
                 glowColor: '#f59e0b',
                 transition: 'fade'
@@ -1317,11 +1317,11 @@ ${rawText}`;
                         rawUrl = `data:image/png;base64,${result.artifacts[0].base64}`;
                     }
                 } else {
-                    // Default Free Engine: Pollinations.ai
+                    // Default Free Engine: Pollinations.ai (High Quality 4K UHD)
                     const cleanPrompt = seg.prompt.replace(/[^a-zA-Z0-9 ,.-]/g, '');
-                    const encodedPrompt = encodeURIComponent(cleanPrompt + ", widescreen 16:9 HD Christian worship aesthetic");
+                    const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
                     const seed = Math.floor(Math.random() * 100000);
-                    rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}`;
+                    rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1920&height=1080&nologo=true&seed=${seed}`;
                 }
 
                 if (rawUrl) {
@@ -1419,14 +1419,14 @@ ${rawText}`;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             } else {
                 // Placeholder background if image not generated yet
-                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, 800);
+                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, 1200);
                 grad.addColorStop(0, '#1e1b4b');
                 grad.addColorStop(1, '#09090b');
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // Draw Subtitles Lyrics
+            // Draw Subtitles Lyrics (4K proportions)
             if (seg && seg.text) {
                 const textLines = seg.text.split('\n');
                 ctx.textAlign = 'center';
@@ -1441,14 +1441,14 @@ ${rawText}`;
                     
                     // Glow Effect
                     ctx.shadowColor = state.canvasStyle.glowColor;
-                    ctx.shadowBlur = 25;
+                    ctx.shadowBlur = 45;
                     ctx.fillStyle = state.canvasStyle.textColor;
                     ctx.fillText(line, canvas.width / 2, y);
                     
                     // Reset shadow for stroke
                     ctx.shadowBlur = 0;
-                    ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+                    ctx.lineWidth = 8;
                     ctx.strokeText(line, canvas.width / 2, y);
                 });
             }
@@ -1483,7 +1483,7 @@ ${rawText}`;
             const progressBox = document.getElementById('renderProgress');
             if (progressBox && progressBox.style.display !== 'none' && player.duration > 0) {
                 const pct = Math.min(100, Math.round((player.currentTime / player.duration) * 100));
-                progressBox.innerHTML = `🚀 Procesando video en modo Turbo (${pct}%)... Por favor espera unos segundos.`;
+                progressBox.innerHTML = `🚀 Procesando video 4K UHD (${pct}%)... Por favor espera unos segundos.`;
             }
 
             if (!player.paused && !player.ended) {
@@ -1491,7 +1491,7 @@ ${rawText}`;
             }
         }
 
-        // WebMediaRecorder Video Export
+        // WebMediaRecorder Video Export (4K 15Mbps)
         function startRecordingVideo() {
             const player = document.getElementById('audioPlayer');
             if (!player.src) {
@@ -1501,7 +1501,7 @@ ${rawText}`;
 
             const speed = parseFloat(document.getElementById('renderSpeedSelect')?.value || 1);
             player.currentTime = 0;
-            player.playbackRate = speed; // Set Turbo speed (2x or 4x)
+            player.playbackRate = speed;
 
             const stream = canvas.captureStream(30); // 30 FPS
 
@@ -1516,7 +1516,10 @@ ${rawText}`;
             dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
             state.recordedChunks = [];
-            const options = { mimeType: 'video/webm;codecs=vp9,opus' };
+            const options = { 
+                mimeType: 'video/webm;codecs=vp9,opus',
+                videoBitsPerSecond: 15000000 // 15 Mbps for ultra-sharp 4K UHD
+            };
             try {
                 state.mediaRecorder = new MediaRecorder(stream, options);
             } catch (e) {
@@ -1605,7 +1608,7 @@ ${rawText}`;
             const cleanSongName = rawSongName.charAt(0).toUpperCase() + rawSongName.slice(1);
             const songType = document.getElementById('songTypeSelect')?.value || 'himno';
 
-            const hashtagsFooter = `#himnosdegloria  #guitarracristiana  #alabanzayadoración  #musicacristiana musicacristiana #himnosdesion  #adoracionacustica  #himnariodegloria  #rodrigogonzalez #himnosantiguos\n#himnosantiguos #rodrigogonzalez`;
+            const hashtagsFooter = `#himnosdegloria  #guitarracristiana  #alabanzayadoracion  #musicacristiana  #himnosdesion  #adoracionacustica  #himnariodegloria  #rodrigogonzalez  #himnosantiguos\n#himnosantiguos  #rodrigogonzalez`;
 
             if (songType === 'himno') {
                 // 1. PLANTILLA PARA HIMNOS (Con número)
@@ -1627,7 +1630,7 @@ ${rawText}`;
                     timestamps += `${mins}:${secs} ${cleanSongName} - ${linePreview}\n`;
                 });
 
-                const description = `📖 Sobre este Himno: Interpretación del Himno N° ${hymnNum} titulado "${cleanSongName}", perteneciente a la colección de ${collection}. Un canto clásico que nos invita a la reflexión y al fortalecimiento de nuestra fe.\n\n🎵 Detalles de la Obra:\nTítulo: ${cleanSongName}\nHimnario: ${collection}\nInterpretación: Rodrigo Gonzalez\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\n${timestamps}\n✨ Suscríbete para más himnos y alabanzas: https://youtube.com/@RodrigoGonzalez\n\n#MúsicaCristiana #HimnosDeSion #RodrigoGonzalez\n${hashtagsFooter}`;
+                const description = `📖 Sobre este Himno: Interpretación del Himno N° ${hymnNum} titulado "${cleanSongName}", perteneciente a la colección de ${collection}. Un canto clásico que nos invita a la reflexión y al fortalecimiento de nuestra fe.\n\n🎵 Detalles de la Obra:\nTítulo: ${cleanSongName}\nHimnario: ${collection}\nInterpretación: Rodrigo Gonzalez\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\n${timestamps}\n✨ Suscríbete para más himnos y alabanzas: https://youtube.com/@RodrigoGonzalez\n\n#musicacristiana #himnosdesion #rodrigogonzalez\n${hashtagsFooter}`;
 
                 document.getElementById('ytDescriptionTextarea').value = description;
 
@@ -1654,7 +1657,7 @@ ${rawText}`;
                     timestamps += `${mins}:${secs} ${cleanSongName} - ${linePreview}\n`;
                 });
 
-                const description = `🙏 Momento de Adoración: Te comparto esta alabanza titulada "${cleanSongName}". Mi deseo es que esta canción sea una herramienta para tu tiempo a solas con Dios y traiga paz a tu corazón.\n\n🎼 Información de la Canción:\nTema: ${cleanSongName}\nGénero: Alabanza / Adoración Cristiana\nVoz: Rodrigo Gonzalez\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\n${timestamps}\n💬 Dime en los comentarios: ¿Cuál es tu parte favorita de esta alabanza? Me encantaría orar por ti, deja tu petición aquí abajo.\n\n🔔 No te pierdas mis próximos videos: https://youtube.com/@RodrigoGonzalez\n\n#MúsicaCristiana #AlabanzayAdoración #RodrigoGonzalez\n${hashtagsFooter}`;
+                const description = `🙏 Momento de Adoración: Te comparto esta alabanza titulada "${cleanSongName}". Mi deseo es que esta canción sea una herramienta para tu tiempo a solas con Dios y traiga paz a tu corazón.\n\n🎼 Información de la Canción:\nTema: ${cleanSongName}\nGénero: Alabanza / Adoración Cristiana\nVoz: Rodrigo Gonzalez\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\n${timestamps}\n💬 Dime en los comentarios: ¿Cuál es tu parte favorita de esta alabanza? Me encantaría orar por ti, deja tu petición aquí abajo.\n\n🔔 No te pierdas mis próximos videos: https://youtube.com/@RodrigoGonzalez\n\n#musicacristiana #alabanzayadoracion #rodrigogonzalez\n${hashtagsFooter}`;
 
                 document.getElementById('ytDescriptionTextarea').value = description;
 
