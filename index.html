@@ -560,6 +560,56 @@
             border-color: var(--accent);
             box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
         }
+
+        /* Mobile Responsiveness Improvements */
+        @media (max-width: 768px) {
+            header {
+                padding: 0.75rem 1rem;
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: stretch;
+            }
+            .logo-container {
+                justify-content: center;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .top-tab-bar {
+                flex-direction: column;
+                padding: 0 1rem;
+                margin-top: 0.75rem;
+            }
+            .top-tab-btn {
+                width: 100%;
+                justify-content: center;
+                font-size: 0.85rem;
+                padding: 0.75rem 1rem;
+            }
+            main {
+                padding: 1rem;
+                gap: 1.25rem;
+            }
+            .stepper {
+                padding: 0.4rem;
+                gap: 0.3rem;
+            }
+            .step-item {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.5rem;
+            }
+            .step1-grid, .studio-grid, div[style*="grid-template-columns: 1fr 1fr"], div[style*="grid-template-columns: 1fr 280px"] {
+                grid-template-columns: 1fr !important;
+            }
+            .action-bar {
+                flex-direction: column-reverse;
+                gap: 0.75rem;
+            }
+            .action-bar button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
