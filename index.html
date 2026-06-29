@@ -842,6 +842,14 @@
                         <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('ytTagsTextarea')"><i data-lucide="copy"></i> Copiar Etiquetas</button>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label>💬 Comentario Fijado del Canal (Estrategia de Engagement)</label>
+                    <textarea id="ytPinnedCommentTextarea" style="min-height: 80px; font-size: 0.9rem;" readonly></textarea>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                        <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('ytPinnedCommentTextarea')"><i data-lucide="copy"></i> Copiar Comentario Fijado</button>
+                    </div>
+                </div>
             </div>
 
             <div class="action-bar">
@@ -1543,30 +1551,45 @@ ${rawText}`;
                 btnD.style.display = 'inline-flex';
             }
 
-            const firstLine = state.lyrics.split('\n')[0] || 'Alabanza Cristiana';
-            document.getElementById('ytTitleInput').value = `${firstLine} - Canción Cristiana con Letra (Video Oficial HD)`;
+            const rawSongName = state.lyrics.split('\n')[0].replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '').trim() || 'Alabanza Cristiana';
+            const cleanSongName = rawSongName.charAt(0).toUpperCase() + rawSongName.slice(1);
+            const songHashtag = cleanSongName.replace(/\s+/g, '');
+
+            // 1. Título con fórmula de Platino
+            document.getElementById('ytTitleInput').value = `${cleanSongName} + Letra Completa 🎵 Himnos Antiguos Cristianos`;
             
             const thumbInput = document.getElementById('thumbTextInput');
             if (thumbInput && !thumbInput.value) {
-                thumbInput.value = firstLine.toUpperCase();
+                thumbInput.value = cleanSongName.toUpperCase();
             }
 
-            let timestamps = 'Capítulos y Tiempos de Letra:\n';
+            // 2. Timestamps / Momentos del video optimizados para SEO
+            let timestamps = '⏳ Momentos del Video:\n0:00 Introducción a ' + cleanSongName + '\n';
             state.segments.forEach(seg => {
-                const mins = Math.floor(seg.startTime / 60).toString().padStart(2, '0');
+                const mins = Math.floor(seg.startTime / 60);
                 const secs = Math.floor(seg.startTime % 60).toString().padStart(2, '0');
-                const title = seg.text.split('\n')[0].substring(0, 30);
-                timestamps += `${mins}:${secs} - ${title}...\n`;
+                const linePreview = seg.text.split('\n')[0].substring(0, 35);
+                timestamps += `${mins}:${secs} ${cleanSongName} - ${linePreview}\n`;
             });
 
-            const hashtagsBlock = `#himnosdegloria  #guitarracristiana  #alabanzayadoración  #musicacristiana musicacristiana #himnosdesion  #adoracionacustica  #himnariodegloria  #rodrigogonzalez #himnosantiguos\n#himnosantiguos #rodrigogonzalez`;
+            // 3. Estructura de Descripción de Platino
+            const hashtagsHeader = `#MusicaCristiana #HimnosAntiguos #${songHashtag}`;
+            const hashtagsFooter = `#himnosdegloria  #guitarracristiana  #alabanzayadoración  #musicacristiana musicacristiana #himnosdesion  #adoracionacustica  #himnariodegloria  #rodrigogonzalez #himnosantiguos\n#himnosantiguos #rodrigogonzalez`;
 
-            const description = `Gloriosa alabanza y canción cristiana para edificación, oración y adoración.\n\n${timestamps}\n---\n${hashtagsBlock}`;
+            const description = `En este video escucharemos ${cleanSongName}. Esta hermosa pieza de la música cristiana tradicional nos invita a la adoración profunda y es ideal para acompañar tu tiempo de oración.\n\n📖 Letra completa de ${cleanSongName}:\n${state.lyrics}\n\nQue esta melodía sea de gran bendición. Si este himno tocó tu corazón, te invito a suscribirte para seguir compartiendo la mejor música de adoración.\n\n${timestamps}\n🎵 Sigue escuchando más himnos:\nHimnos Tradicionales: https://youtube.com\nAlabanzas para Orar: https://youtube.com\n\n${hashtagsHeader}\n${hashtagsFooter}`;
+
             document.getElementById('ytDescriptionTextarea').value = description;
 
+            // 4. Etiquetas obligatorias
             const tagsTextarea = document.getElementById('ytTagsTextarea');
             if (tagsTextarea) {
                 tagsTextarea.value = MANDATORY_TAGS.join(',');
+            }
+
+            // 5. Comentario Fijado del Canal
+            const pinnedCommentTextarea = document.getElementById('ytPinnedCommentTextarea');
+            if (pinnedCommentTextarea) {
+                pinnedCommentTextarea.value = `¡Bendiciones a todos! 🙏 ¿Cuál es su estrofa favorita de este himno o qué otra alabanza les gustaría que grabe para el próximo video? Los leo aquí abajo.`;
             }
 
             drawThumbnailCanvas();
