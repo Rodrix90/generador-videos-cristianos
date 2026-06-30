@@ -961,6 +961,25 @@
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.8rem;">⚡ Plantillas Virales (Clickbait de Alta Conversión)</label>
+                            <select id="thumbTemplateSelect" onchange="applyThumbnailTemplate()">
+                                <option value="custom" selected>✍️ Personalizado (Escribir abajo)</option>
+                                <option value="viral1">🕊️ ¡ESTO CAMBIARÁ TU VIDA HOY!</option>
+                                <option value="viral2">🔥 ¡DIOS TE HABLA HOY! NO LO IGNORES</option>
+                                <option value="viral3">💖 ¡ALABANZAS PARA SANAR EL ALMA!</option>
+                                <option value="viral4">✨ ORACIÓN DE PODER PARA ENCONTRAR PAZ</option>
+                                <option value="viral5">🕯️ ESCUCHA ESTO ANTES DE DORMIR</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.8rem;">🎨 Estilo Visual</label>
+                            <select id="thumbStyleSelect" onchange="drawThumbnailCanvas()">
+                                <option value="gold-frame" selected>👑 Marco Dorado Sacro (Premium)</option>
+                                <option value="vignette">🎬 Viñeta Cinematográfica Dramática</option>
+                                <option value="glow">💡 Resplandor Divino y Brillo</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0;" id="customTitleGroup">
                             <label style="font-size: 0.8rem;">Texto de Portada</label>
                             <input type="text" id="thumbTextInput" placeholder="Título de la canción..." oninput="drawThumbnailCanvas()">
                         </div>
@@ -2142,6 +2161,26 @@ ${rawText}`;
             drawThumbnailCanvas();
         }
 
+        function applyThumbnailTemplate() {
+            const template = document.getElementById('thumbTemplateSelect').value;
+            const textInput = document.getElementById('thumbTextInput');
+            const customTitleGroup = document.getElementById('customTitleGroup');
+
+            if (template === 'custom') {
+                customTitleGroup.style.display = 'block';
+            } else {
+                customTitleGroup.style.display = 'none';
+                if (template === 'viral1') textInput.value = '¡ESTO CAMBIARÁ TU VIDA HOY! 🕊️';
+                else if (template === 'viral2') textInput.value = '¡DIOS TE HABLA HOY! NO LO IGNORES';
+                else if (template === 'viral3') textInput.value = '¡ALABANZAS PARA SANAR EL ALMA! 💖';
+                else if (template === 'viral4') textInput.value = '✨ ORACIÓN DE PODER PARA ENCONTRAR PAZ';
+                else if (template === 'viral5') textInput.value = '🕯️ ESCUCHA ESTO ANTES DE DORMIR';
+            }
+            drawThumbnailCanvas();
+        }
+
+        let onTheFlyBgImg = null;
+
         function drawThumbnailCanvas() {
             try {
                 const tCanvas = document.getElementById('thumbnailCanvas');
@@ -2152,14 +2191,27 @@ ${rawText}`;
                 tCtx.fillStyle = '#0b0d17';
                 tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
 
-                const bgImg = (loadedImages && loadedImages[0]) ? loadedImages[0] : null;
+                let bgImg = (loadedImages && loadedImages[0]) ? loadedImages[0] : null;
+
+                // On-the-fly preloader if loadedImages is empty or not loaded yet
+                if (!bgImg && state.segments && state.segments[0] && state.segments[0].imageUrl) {
+                    if (!onTheFlyBgImg) {
+                        onTheFlyBgImg = new Image();
+                        onTheFlyBgImg.crossOrigin = "anonymous";
+                        onTheFlyBgImg.onload = () => {
+                            drawThumbnailCanvas();
+                        };
+                        onTheFlyBgImg.src = state.segments[0].imageUrl;
+                    }
+                    bgImg = onTheFlyBgImg;
+                }
 
                 if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
                     tCtx.drawImage(bgImg, 0, 0, tCanvas.width, tCanvas.height);
                     // Cinematic vignette & gradient overlay
                     const grad = tCtx.createRadialGradient(tCanvas.width/2, tCanvas.height/2, 200, tCanvas.width/2, tCanvas.height/2, 800);
-                    grad.addColorStop(0, 'rgba(0,0,0,0.3)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.85)');
+                    grad.addColorStop(0, 'rgba(0,0,0,0.2)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.8)');
                     tCtx.fillStyle = grad;
                     tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
                 } else {
@@ -2170,21 +2222,51 @@ ${rawText}`;
                     tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
                 }
 
+                const styleSelect = document.getElementById('thumbStyleSelect')?.value || 'gold-frame';
+
+                // Overlay Styles
+                if (styleSelect === 'gold-frame') {
+                    // Sacro Golden Frame
+                    tCtx.strokeStyle = '#f59e0b';
+                    tCtx.lineWidth = 22;
+                    tCtx.strokeRect(11, 11, tCanvas.width - 22, tCanvas.height - 22);
+                    
+                    tCtx.strokeStyle = '#ffffff';
+                    tCtx.lineWidth = 4;
+                    tCtx.strokeRect(26, 26, tCanvas.width - 52, tCanvas.height - 52);
+                } else if (styleSelect === 'vignette') {
+                    // Cinematographic Vignette
+                    const grad = tCtx.createRadialGradient(tCanvas.width/2, tCanvas.height/2, 100, tCanvas.width/2, tCanvas.height/2, 750);
+                    grad.addColorStop(0, 'rgba(0,0,0,0)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.95)');
+                    tCtx.fillStyle = grad;
+                    tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+                } else if (styleSelect === 'glow') {
+                    // Soft Volumetric Glows
+                    const grad = tCtx.createLinearGradient(0, 0, tCanvas.width, 0);
+                    grad.addColorStop(0, 'rgba(245, 158, 11, 0.2)');
+                    grad.addColorStop(0.3, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.7, 'rgba(0,0,0,0)');
+                    grad.addColorStop(1, 'rgba(245, 158, 11, 0.2)');
+                    tCtx.fillStyle = grad;
+                    tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+                }
+
                 // Draw Main Title Text
                 const titleText = (document.getElementById('thumbTextInput')?.value || (state.lyrics ? state.lyrics.split('\n')[0] : '') || 'ALABANZA CRISTIANA').toUpperCase();
                 tCtx.textAlign = 'center';
                 tCtx.textBaseline = 'middle';
-                tCtx.font = "900 78px 'Cinzel', serif";
+                tCtx.font = "900 72px 'Cinzel', serif";
 
-                // Golden Glow
+                // Golden Glow and Stroke for high-impact
                 tCtx.shadowColor = '#f59e0b';
-                tCtx.shadowBlur = 35;
+                tCtx.shadowBlur = 40;
                 tCtx.fillStyle = '#ffffff';
                 tCtx.fillText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
 
                 tCtx.shadowBlur = 0;
-                tCtx.strokeStyle = 'rgba(0,0,0,0.9)';
-                tCtx.lineWidth = 6;
+                tCtx.strokeStyle = 'rgba(0,0,0,0.95)';
+                tCtx.lineWidth = 8;
                 tCtx.strokeText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
 
                 // Draw Badge
@@ -2195,7 +2277,7 @@ ${rawText}`;
                     const badgeW = textWidth + 50;
                     const badgeH = 54;
                     const badgeX = (tCanvas.width / 2) - (badgeW / 2);
-                    const badgeY = (tCanvas.height / 2) + 80;
+                    const badgeY = (tCanvas.height / 2) + 90;
 
                     tCtx.fillStyle = '#f59e0b';
                     tCtx.beginPath();
