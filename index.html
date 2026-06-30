@@ -764,7 +764,14 @@
                 <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
                     <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(0,0,0,0.2); padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
                         <label style="font-size: 0.8rem; margin: 0;">Intro (seg):</label>
-                        <input type="number" id="introOffsetInput" value="5" step="0.5" style="width: 60px; padding: 0.2rem 0.4rem; font-size: 0.85rem;" onchange="autoSegmentLyrics()">
+                        <input type="number" id="introOffsetInput" value="2" step="0.5" style="width: 60px; padding: 0.2rem 0.4rem; font-size: 0.85rem;" onchange="autoSegmentLyrics()">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(0,0,0,0.2); padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--accent);">⏱️ Ajustar Delay:</span>
+                        <button class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;" onclick="shiftAllTimes(-3)">-3s</button>
+                        <button class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;" onclick="shiftAllTimes(-1)">-1s</button>
+                        <button class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;" onclick="shiftAllTimes(1)">+1s</button>
+                        <button class="btn btn-secondary btn-sm" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;" onclick="shiftAllTimes(3)">+3s</button>
                     </div>
                     <button class="btn btn-secondary btn-sm" onclick="autoSegmentLyrics()">
                         <i data-lucide="sparkles"></i> Recalcular Tiempos
@@ -906,6 +913,9 @@
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                     <button class="btn btn-secondary btn-sm" id="btnDownloadStep4" onclick="downloadLastRecordedVideo()" style="display: none;">
                         <i data-lucide="download"></i> Volver a Descargar Video
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="downloadSrtSubtitles()">
+                        <i data-lucide="file-text"></i> Descargar Subtítulos (.SRT)
                     </button>
                     <a href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer" class="btn btn-accent btn-sm">
                         <i data-lucide="upload"></i> Abrir YouTube Studio para Subir
@@ -1366,6 +1376,40 @@
             }
         }
 
+        function generateLocalPromptForText(text) {
+            const lower = text.toLowerCase();
+            let details = [];
+
+            if (lower.includes('cruz') || lower.includes('madero') || lower.includes('calvario')) {
+                details.push('a glowing golden Christian cross standing on a peaceful hill at sunset');
+            }
+            if (lower.includes('jesús') || lower.includes('cristo') || lower.includes('señor') || lower.includes('dios') || lower.includes('nombre')) {
+                details.push('heavenly rays of divine light breaking through dramatic clouds, sacred golden atmosphere');
+            }
+            if (lower.includes('canto') || lower.includes('voz') || lower.includes('nota') || lower.includes('ser') || lower.includes('cancion')) {
+                details.push('glowing sacred light and warm golden waves reflecting spiritual melody');
+            }
+            if (lower.includes('nubes') || lower.includes('cielo') || lower.includes('azul') || lower.includes('volvera') || lower.includes('gloria') || lower.includes('luz')) {
+                details.push('majestic deep blue sky filled with golden cinematic clouds and dramatic volumetric sunbeams');
+            }
+            if (lower.includes('alas') || lower.includes('plumas') || lower.includes('proteccion') || lower.includes('amor')) {
+                details.push('divine angel wings of pure white light shielding a peaceful scenic valley');
+            }
+            if (lower.includes('naufrago') || lower.includes('mar') || lower.includes('tempestad') || lower.includes('pecado') || lower.includes('corazon')) {
+                details.push('a lone classic sailboat resting on perfectly calm crystal waters under a lighthouse of hope');
+            }
+            if (lower.includes('gracia') || lower.includes('riquezas') || lower.includes('trono') || lower.includes('raudal')) {
+                details.push('glorious golden light flowing like a river from a magnificent heavenly throne in paradise');
+            }
+
+            // Fallback if no keywords matched
+            if (details.length === 0) {
+                details.push('serene peaceful mountain landscape under a celestial sky with golden rays of light');
+            }
+
+            return `4K UHD, sacred Christian art style, ${details.join(', ')}, detailed cinematic scenery, dramatic volumetric lighting, peaceful worship atmosphere`;
+        }
+
         // Auto-Segmentation & Prompts with Claude or Fallback
         async function autoSegmentLyrics() {
             const rawText = state.lyrics;
@@ -1400,7 +1444,7 @@
                     text: block.trim(),
                     startTime: parseFloat(startTime.toFixed(1)),
                     endTime: parseFloat(endTime.toFixed(1)),
-                    prompt: `Inspirational Christian worship artwork, serene spiritual sunset, heavenly rays of light, cross on a hill, digital art, high quality 8k`,
+                    prompt: generateLocalPromptForText(block.trim()),
                     imageUrl: null
                 });
             });
@@ -1408,11 +1452,13 @@
             // If Claude Key is available, request smart prompt enhancement & segment refinement
             if (state.keys.anthropic) {
                 try {
-                    const promptText = `Eres un director creativo visual para videos musicales cristianos en YouTube. 
+                    const promptText = `Eres un director creativo visual para videos musicales cristianos en YouTube de alta calidad. 
 Analiza la siguiente letra de canción y genera un arreglo en JSON con estrofas bien divididas y prompts de arte digital HD inspiradores para cada estrofa.
+Cada prompt debe estar redactado en inglés y describir escenas celestiales, hermosas, espirituales y bíblicas que representen de manera poética la letra de la estrofa.
+Usa palabras clave de renderizado como: "4K UHD, sacred Christian art style, detailed cinematic scenery, dramatic volumetric lighting, peaceful worship atmosphere".
 Responde ÚNICAMENTE en formato JSON con la siguiente estructura de lista:
 [
-  { "id": 1, "text": "letra de la estrofa", "prompt": "prompt detallado en inglés para IA (ej. Peaceful Christian landscape with glowing light, sacred atmosphere, 8k render)" }
+  { "id": 1, "text": "letra de la estrofa", "prompt": "prompt detallado en inglés para la imagen de IA (ej: 4K UHD, sacred Christian art style, heavenly rays of divine light breaking through dramatic golden clouds, detailed cinematic scenery, peaceful worship atmosphere)" }
 ]
 
 Letra:
@@ -2507,6 +2553,52 @@ ${rawText}`;
                 titleEl.value = titleEl.value.replace('Himno N°', 'Hino N°').replace('Música Cristiana', 'Música Cristã').replace('Alabanza de Adoración', 'Louvor e Adoração');
                 descEl.value = `📖 Sobre este Hino: Interpretação de Rodrigo Gonzalez. Linda música cristã de louvor e adoração para oração.\n\n` + descEl.value;
                 alert('¡Metadatos traducidos al Portugués (Português)!');
+            }
+        }
+
+        function downloadSrtSubtitles() {
+            if (!state.segments || state.segments.length === 0) {
+                alert('No hay subtítulos para exportar.');
+                return;
+            }
+
+            let srtContent = '';
+            state.segments.forEach((seg, index) => {
+                const formatTime = (seconds) => {
+                    const hrs = Math.floor(seconds / 3600).toString().padStart(2, '0');
+                    const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+                    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+                    const ms = Math.floor((seconds % 1) * 1000).toString().padStart(3, '0');
+                    return `${hrs}:${mins}:${secs},${ms}`;
+                };
+
+                const start = formatTime(seg.startTime);
+                const end = formatTime(seg.endTime);
+
+                srtContent += `${index + 1}\n`;
+                srtContent += `${start} --> ${end}\n`;
+                srtContent += `${seg.text.replace(/\n/g, ' ')}\n\n`;
+            });
+
+            const blob = new Blob([srtContent], { type: 'text/srt;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `${document.getElementById('ytTitleInput')?.value || 'subtitulos'}.srt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function shiftAllTimes(seconds) {
+            state.segments.forEach(seg => {
+                seg.startTime = Math.max(0, parseFloat((seg.startTime + seconds).toFixed(1)));
+                seg.endTime = Math.max(0, parseFloat((seg.endTime + seconds).toFixed(1)));
+            });
+            renderSegments();
+            if (typeof drawCanvasFrame === 'function') {
+                drawCanvasFrame(0);
             }
         }
     </script>
