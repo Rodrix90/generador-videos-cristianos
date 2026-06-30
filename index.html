@@ -2143,67 +2143,74 @@ ${rawText}`;
         }
 
         function drawThumbnailCanvas() {
-            const tCanvas = document.getElementById('thumbnailCanvas');
-            if (!tCanvas) return;
-            const tCtx = tCanvas.getContext('2d');
+            try {
+                const tCanvas = document.getElementById('thumbnailCanvas');
+                if (!tCanvas) return;
+                const tCtx = tCanvas.getContext('2d');
 
-            // Background
-            tCtx.fillStyle = '#0b0d17';
-            tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
-
-            const firstSeg = state.segments[0];
-            const bgImg = (loadedImages && loadedImages[0]) ? loadedImages[0] : null;
-
-            if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
-                tCtx.drawImage(bgImg, 0, 0, tCanvas.width, tCanvas.height);
-                // Cinematic vignette & gradient overlay
-                const grad = tCtx.createRadialGradient(tCanvas.width/2, tCanvas.height/2, 200, tCanvas.width/2, tCanvas.height/2, 800);
-                grad.addColorStop(0, 'rgba(0,0,0,0.3)');
-                grad.addColorStop(1, 'rgba(0,0,0,0.85)');
-                tCtx.fillStyle = grad;
+                // Background
+                tCtx.fillStyle = '#0b0d17';
                 tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
-            } else {
-                const grad = tCtx.createLinearGradient(0, 0, tCanvas.width, tCanvas.height);
-                grad.addColorStop(0, '#1e1b4b');
-                grad.addColorStop(1, '#09090b');
-                tCtx.fillStyle = grad;
-                tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
-            }
 
-            // Draw Main Title Text
-            const titleText = (document.getElementById('thumbTextInput')?.value || state.lyrics.split('\n')[0] || 'ALABANZA CRISTIANA').toUpperCase();
-            tCtx.textAlign = 'center';
-            tCtx.textBaseline = 'middle';
-            tCtx.font = "900 78px 'Cinzel', serif";
+                const bgImg = (loadedImages && loadedImages[0]) ? loadedImages[0] : null;
 
-            // Golden Glow
-            tCtx.shadowColor = '#f59e0b';
-            tCtx.shadowBlur = 35;
-            tCtx.fillStyle = '#ffffff';
-            tCtx.fillText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
+                if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
+                    tCtx.drawImage(bgImg, 0, 0, tCanvas.width, tCanvas.height);
+                    // Cinematic vignette & gradient overlay
+                    const grad = tCtx.createRadialGradient(tCanvas.width/2, tCanvas.height/2, 200, tCanvas.width/2, tCanvas.height/2, 800);
+                    grad.addColorStop(0, 'rgba(0,0,0,0.3)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.85)');
+                    tCtx.fillStyle = grad;
+                    tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+                } else {
+                    const grad = tCtx.createLinearGradient(0, 0, tCanvas.width, tCanvas.height);
+                    grad.addColorStop(0, '#1e1b4b');
+                    grad.addColorStop(1, '#09090b');
+                    tCtx.fillStyle = grad;
+                    tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+                }
 
-            tCtx.shadowBlur = 0;
-            tCtx.strokeStyle = 'rgba(0,0,0,0.9)';
-            tCtx.lineWidth = 6;
-            tCtx.strokeText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
+                // Draw Main Title Text
+                const titleText = (document.getElementById('thumbTextInput')?.value || (state.lyrics ? state.lyrics.split('\n')[0] : '') || 'ALABANZA CRISTIANA').toUpperCase();
+                tCtx.textAlign = 'center';
+                tCtx.textBaseline = 'middle';
+                tCtx.font = "900 78px 'Cinzel', serif";
 
-            // Draw Badge
-            const badgeText = document.getElementById('thumbBadgeInput')?.value || 'MÚSICA CRISTIANA HD';
-            if (badgeText) {
-                tCtx.font = "800 32px 'Montserrat', sans-serif";
-                const textWidth = tCtx.measureText(badgeText).width;
-                const badgeW = textWidth + 50;
-                const badgeH = 54;
-                const badgeX = (tCanvas.width / 2) - (badgeW / 2);
-                const badgeY = (tCanvas.height / 2) + 80;
+                // Golden Glow
+                tCtx.shadowColor = '#f59e0b';
+                tCtx.shadowBlur = 35;
+                tCtx.fillStyle = '#ffffff';
+                tCtx.fillText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
 
-                tCtx.fillStyle = '#f59e0b';
-                tCtx.beginPath();
-                tCtx.roundRect(badgeX, badgeY, badgeW, badgeH, 12);
-                tCtx.fill();
+                tCtx.shadowBlur = 0;
+                tCtx.strokeStyle = 'rgba(0,0,0,0.9)';
+                tCtx.lineWidth = 6;
+                tCtx.strokeText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
 
-                tCtx.fillStyle = '#000000';
-                tCtx.fillText(badgeText, tCanvas.width / 2, badgeY + (badgeH / 2));
+                // Draw Badge
+                const badgeText = document.getElementById('thumbBadgeInput')?.value || 'MÚSICA CRISTIANA HD';
+                if (badgeText) {
+                    tCtx.font = "800 32px 'Montserrat', sans-serif";
+                    const textWidth = tCtx.measureText(badgeText).width;
+                    const badgeW = textWidth + 50;
+                    const badgeH = 54;
+                    const badgeX = (tCanvas.width / 2) - (badgeW / 2);
+                    const badgeY = (tCanvas.height / 2) + 80;
+
+                    tCtx.fillStyle = '#f59e0b';
+                    tCtx.beginPath();
+                    if (tCtx.roundRect) {
+                        tCtx.roundRect(badgeX, badgeY, badgeW, badgeH, 12);
+                    } else {
+                        tCtx.rect(badgeX, badgeY, badgeW, badgeH);
+                    }
+                    tCtx.fill();
+
+                    tCtx.fillStyle = '#000000';
+                    tCtx.fillText(badgeText, tCanvas.width / 2, badgeY + (badgeH / 2));
+                }
+            } catch (err) {
+                console.error("Error drawing thumbnail canvas:", err);
             }
         }
 
