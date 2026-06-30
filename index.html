@@ -643,6 +643,9 @@
         <button class="top-tab-btn" id="tabBtnCompilation" onclick="switchMainMode('compilation')">
             <i data-lucide="disc"></i> 🕊️ Compilación de Oración (Multi-MP3 1 Hora+)
         </button>
+        <button class="top-tab-btn" id="tabBtnShorts" onclick="switchMainMode('shorts')">
+            <i data-lucide="smartphone"></i> 📱 Video de YouTube a Short (9:16)
+        </button>
     </div>
 
     <!-- Main Content -->
@@ -1136,6 +1139,99 @@
                     <textarea id="compYtTagsTextarea" style="min-height: 80px; font-size: 0.85rem;" readonly></textarea>
                     <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
                         <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('compYtTagsTextarea')"><i data-lucide="copy"></i> Copiar Etiquetas</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Main Content for YouTube to Short Tab -->
+    <main id="mainShortsMode" style="display: none;">
+        <section class="view-content active" style="display: block;">
+            <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">📱 Crear Short desde Video de YouTube (9:16)</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Corta cualquier segmento de tus videos subidos en YouTube, redimenciónalo a vertical 9:16 para Shorts y agrégale metadatos listos para subir.</p>
+
+            <div class="step1-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem;">
+                <!-- Left panel: URL input and Preview player -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="link"></i> Enlace del Video
+                        </h3>
+                        <div class="form-group" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <input type="text" id="ytVideoUrlInput" placeholder="https://www.youtube.com/watch?v=... o archivo local MP4" style="flex: 1;">
+                            <button class="btn btn-primary btn-sm" onclick="loadYoutubeShortVideo()">Cargar</button>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">Puedes ingresar enlaces directos de video o seleccionar un archivo de video local si lo tienes descargado.</p>
+                        
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label style="font-size: 0.8rem; margin: 0;">O Cargar Video Local (.mp4/.webm):</label>
+                            <input type="file" accept="video/*" onchange="handleLocalShortVideoSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Vista Previa de Corte</span>
+                        <div style="width: 270px; height: 480px; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--accent); position: relative;">
+                            <video id="shortsPreviewVideo" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right panel: Controls and Metadata generation -->
+                <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; gap: 1.25rem;">
+                    <h3 style="font-size: 1.05rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="scissors"></i> Parámetros del Short
+                    </h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Inicio de Clip (seg):</label>
+                            <input type="number" id="shortsCutStart" value="10" step="1" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.85rem;">Duración (seg):</label>
+                            <select id="shortsCutDuration" style="width: 100%;">
+                                <option value="15" selected>15 Segundos</option>
+                                <option value="30">30 Segundos</option>
+                                <option value="59">59 Segundos (Máximo)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-accent" onclick="startUrlShortRecording()" id="btnRecordUrlShort" style="margin-top: 0.5rem;">
+                        <i data-lucide="video"></i> Generar Video Short (9:16 Vertical)
+                    </button>
+                    <div id="urlShortRenderProgress" style="text-align: center; font-weight: 600; color: var(--accent); display: none; font-size: 0.85rem;">
+                        Procesando y reencuadrando video vertical... Por favor espera.
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem;">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--accent);">SEO del Short (YouTube Studio)</h4>
+                        
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem;">Título del Short</label>
+                            <div class="copy-input-group">
+                                <input type="text" id="urlShortTitle" value="¡Hermosa Alabanza para tu Alma! 🕊️ #shorts">
+                                <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('urlShortTitle')"><i data-lucide="copy"></i> Copiar</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem;">Descripción y Hashtags</label>
+                            <textarea id="urlShortDesc" style="min-height: 90px; font-size: 0.85rem;">Te comparto este hermoso fragmento de adoración acústica. Escucha el himno completo en mi canal oficial Rodrigo Gonzalez. \n\n#musicacristiana #adoracion #himnosantiguos #rodrigogonzalez #shorts</textarea>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 0.4rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('urlShortDesc')"><i data-lucide="copy"></i> Copiar Descripción</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label style="font-size: 0.8rem;">Tags de Búsqueda</label>
+                            <textarea id="urlShortTags" style="min-height: 60px; font-size: 0.85rem;" readonly>musica cristiana shorts,himnos de adoracion,rodrigo gonzalez,alabanza acustica</textarea>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 0.4rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('urlShortTags')"><i data-lucide="copy"></i> Copiar Tags</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2233,23 +2329,33 @@ ${rawText}`;
             }
         }
 
-        // Main Mode Navigation (Single Video vs Compilation)
+        // Main Mode Navigation (Single Video vs Compilation vs Shorts URL)
         function switchMainMode(mode) {
             const btnSingle = document.getElementById('tabBtnSingle');
             const btnComp = document.getElementById('tabBtnCompilation');
+            const btnShorts = document.getElementById('tabBtnShorts');
+            
             const mainSingle = document.getElementById('mainSingleMode');
             const mainComp = document.getElementById('mainCompilationMode');
+            const mainShorts = document.getElementById('mainShortsMode');
+
+            btnSingle.classList.remove('active');
+            btnComp.classList.remove('active');
+            btnShorts.classList.remove('active');
+            
+            mainSingle.style.display = 'none';
+            mainComp.style.display = 'none';
+            mainShorts.style.display = 'none';
 
             if (mode === 'single') {
                 btnSingle.classList.add('active');
-                btnComp.classList.remove('active');
                 mainSingle.style.display = 'block';
-                mainComp.style.display = 'none';
-            } else {
+            } else if (mode === 'compilation') {
                 btnComp.classList.add('active');
-                btnSingle.classList.remove('active');
                 mainComp.style.display = 'block';
-                mainSingle.style.display = 'none';
+            } else if (mode === 'shorts') {
+                btnShorts.classList.add('active');
+                mainShorts.style.display = 'block';
             }
         }
 
@@ -2675,6 +2781,145 @@ ${rawText}`;
             if (typeof drawCanvasFrame === 'function') {
                 drawCanvasFrame(0);
             }
+        }
+
+        // YouTube / MP4 video to Short (9:16) crop tools
+        let shortVideoFile = null;
+        let shortVideoUrl = null;
+
+        function handleLocalShortVideoSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                shortVideoFile = file;
+                shortVideoUrl = URL.createObjectURL(file);
+                const player = document.getElementById('shortsPreviewVideo');
+                player.src = shortVideoUrl;
+                player.play();
+                
+                // Extraer el nombre para los metadatos
+                const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, " ").trim();
+                document.getElementById('urlShortTitle').value = `${cleanName} 🕊️ #shorts`;
+                document.getElementById('urlShortDesc').value = `Te comparto este fragmento del himno ${cleanName}. Escucha la alabanza completa en mi canal oficial Rodrigo Gonzalez. \n\n#musicacristiana #adoracion #himnosantiguos #rodrigogonzalez #shorts`;
+            }
+        }
+
+        function loadYoutubeShortVideo() {
+            const urlInput = document.getElementById('ytVideoUrlInput').value.trim();
+            if (!urlInput) {
+                alert('Por favor ingresa una URL válida o selecciona un archivo de video local.');
+                return;
+            }
+            
+            // Para URLs de YouTube, usamos un proxy público de reproducción o advertimos la necesidad de descarga
+            if (urlInput.includes('youtube.com') || urlInput.includes('youtu.be')) {
+                alert('Por restricciones de seguridad (CORS) de YouTube, para procesar la URL te recomendamos descargar el MP4 de tu video y seleccionarlo abajo como "Video Local".\n\nNo obstante, intentaremos cargarlo.');
+                // Fallback attempt
+                const player = document.getElementById('shortsPreviewVideo');
+                player.src = urlInput;
+            } else {
+                const player = document.getElementById('shortsPreviewVideo');
+                player.src = urlInput;
+                player.play();
+            }
+        }
+
+        async function startUrlShortRecording() {
+            const player = document.getElementById('shortsPreviewVideo');
+            if (!player.src) {
+                alert('Por favor carga primero un video local o URL.');
+                return;
+            }
+
+            const btn = document.getElementById('btnRecordUrlShort');
+            const progress = document.getElementById('urlShortRenderProgress');
+            progress.style.display = 'block';
+            if (btn) btn.disabled = true;
+
+            const cutStart = parseFloat(document.getElementById('shortsCutStart').value) || 0;
+            const cutDuration = parseFloat(document.getElementById('shortsCutDuration').value) || 15;
+
+            // Setup 9:16 Canvas
+            const sCanvas = document.createElement('canvas');
+            sCanvas.width = 1080;
+            sCanvas.height = 1920;
+            const sCtx = sCanvas.getContext('2d');
+
+            const stream = sCanvas.captureStream(30);
+            
+            // Audio Routing
+            let audioStreamDest;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaElementSource(player);
+                audioStreamDest = audioCtx.createMediaStreamDestination();
+                source.connect(audioStreamDest);
+                source.connect(audioCtx.destination); // Oír mientras graba
+                audioStreamDest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+            } catch(e) {
+                console.warn("Audio Context already active or direct routing fallback.", e);
+            }
+
+            const recordedChunks = [];
+            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 8000000 });
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+            // Ir al segundo de inicio
+            player.currentTime = cutStart;
+            await new Promise(r => setTimeout(r, 600)); // Esperar buffer
+
+            mediaRecorder.start();
+            player.play();
+
+            let animActive = true;
+            const drawFrame = () => {
+                if (!animActive) return;
+                
+                // Draw background dark fill
+                sCtx.fillStyle = '#0b0d17';
+                sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+
+                // Draw centered cropped video to fit 9:16
+                const videoRatio = player.videoWidth / player.videoHeight;
+                const targetWidth = sCanvas.height * videoRatio;
+                const xOffset = (sCanvas.width - targetWidth) / 2;
+                
+                sCtx.drawImage(player, xOffset, 0, targetWidth, sCanvas.height);
+
+                // Draw Watermark
+                if (watermarkImg.complete && watermarkImg.naturalWidth !== 0) {
+                    sCtx.save();
+                    sCtx.globalAlpha = 0.85;
+                    sCtx.drawImage(watermarkImg, (sCanvas.width - 440)/2, 120, 440, 115);
+                    sCtx.restore();
+                }
+
+                // Check cut limits
+                if (player.currentTime >= (cutStart + cutDuration) || player.ended) {
+                    animActive = false;
+                    mediaRecorder.stop();
+                } else {
+                    requestAnimationFrame(drawFrame);
+                }
+            };
+
+            drawFrame();
+
+            mediaRecorder.onstop = () => {
+                player.pause();
+                animActive = false;
+                
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = `youtube_short_${Date.now()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                
+                progress.innerHTML = `<span style="color:var(--success);">¡Short de 9:16 generado y descargado con éxito!</span>`;
+                if (btn) btn.disabled = false;
+            };
         }
     </script>
 </body>
