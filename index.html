@@ -1901,9 +1901,29 @@ ${rawText}`;
                 const textLines = seg.text.split('\n');
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.font = `bold ${state.canvasStyle.fontSize}px ${state.canvasStyle.fontFamily}`;
 
-                const lineHeight = parseInt(state.canvasStyle.fontSize) * 1.35;
+                // Determine maximum line width to see if we need to auto-shrink the font
+                let originalSize = parseInt(state.canvasStyle.fontSize);
+                let currentSize = originalSize;
+                ctx.font = `bold ${currentSize}px ${state.canvasStyle.fontFamily}`;
+                
+                const maxAllowedWidth = canvas.width - 260; // 130px safe area margin on each side
+                
+                let maxLineWidth = 0;
+                textLines.forEach(line => {
+                    const w = ctx.measureText(line).width;
+                    if (w > maxLineWidth) maxLineWidth = w;
+                });
+                
+                if (maxLineWidth > maxAllowedWidth) {
+                    // Reduce font size proportionally so it fits exactly
+                    currentSize = Math.floor(originalSize * (maxAllowedWidth / maxLineWidth));
+                    // Keep a sensible minimum font size
+                    currentSize = Math.max(50, currentSize);
+                    ctx.font = `bold ${currentSize}px ${state.canvasStyle.fontFamily}`;
+                }
+
+                const lineHeight = currentSize * 1.35;
                 const startY = (canvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
 
                 textLines.forEach((line, idx) => {
@@ -2252,22 +2272,54 @@ ${rawText}`;
                     tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
                 }
 
-                // Draw Main Title Text
+                // Draw Main Title Text with Safe Auto-Wrap & Scale
                 const titleText = (document.getElementById('thumbTextInput')?.value || (state.lyrics ? state.lyrics.split('\n')[0] : '') || 'ALABANZA CRISTIANA').toUpperCase();
                 tCtx.textAlign = 'center';
                 tCtx.textBaseline = 'middle';
-                tCtx.font = "900 72px 'Cinzel', serif";
 
-                // Golden Glow and Stroke for high-impact
-                tCtx.shadowColor = '#f59e0b';
-                tCtx.shadowBlur = 40;
-                tCtx.fillStyle = '#ffffff';
-                tCtx.fillText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
+                // Dynamically calculate safe font size based on length
+                let baseFontSize = 72;
+                if (titleText.length > 25) baseFontSize = 56;
+                if (titleText.length > 40) baseFontSize = 42;
+                tCtx.font = `900 ${baseFontSize}px 'Cinzel', serif`;
 
-                tCtx.shadowBlur = 0;
-                tCtx.strokeStyle = 'rgba(0,0,0,0.95)';
-                tCtx.lineWidth = 8;
-                tCtx.strokeText(titleText, tCanvas.width / 2, (tCanvas.height / 2) - 20);
+                // Wrap text if too wide
+                const maxWidth = tCanvas.width - 160; // 80px safe margin on each side
+                const words = titleText.split(' ');
+                let lines = [];
+                let currentLine = '';
+
+                for (let n = 0; n < words.length; n++) {
+                    let testLine = currentLine + words[n] + ' ';
+                    let metrics = tCtx.measureText(testLine);
+                    let testWidth = metrics.width;
+                    if (testWidth > maxWidth && n > 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = words[n] + ' ';
+                    } else {
+                        currentLine = testLine;
+                    }
+                }
+                lines.push(currentLine.trim());
+
+                // Draw lines centered
+                const textLineHeight = baseFontSize * 1.25;
+                const startY = (tCanvas.height / 2) - 30 - ((lines.length - 1) * textLineHeight / 2);
+
+                lines.forEach((line, idx) => {
+                    const y = startY + (idx * textLineHeight);
+                    
+                    // Golden Glow
+                    tCtx.shadowColor = '#f59e0b';
+                    tCtx.shadowBlur = 40;
+                    tCtx.fillStyle = '#ffffff';
+                    tCtx.fillText(line, tCanvas.width / 2, y);
+
+                    tCtx.shadowBlur = 0;
+                    tCtx.strokeStyle = 'rgba(0,0,0,0.95)';
+                    tCtx.lineWidth = 8;
+                    tCtx.strokeText(line, tCanvas.width / 2, y);
+                });
 
                 // Draw Badge
                 const badgeText = document.getElementById('thumbBadgeInput')?.value || 'MÚSICA CRISTIANA HD';
