@@ -838,7 +838,8 @@
                     <div class="form-group">
                         <label>Tipografía (Google Fonts)</label>
                         <select id="fontFamilySelect" onchange="updateCanvasStyle()">
-                            <option value="'Montserrat', sans-serif">Montserrat (Moderna / Limpia)</option>
+                            <option value="Helvetica, Arial, sans-serif">Helvetica (Científicamente Clara / Altamente Legible)</option>
+                            <option value="'Montserrat', sans-serif" selected>Montserrat (Moderna / Limpia)</option>
                             <option value="'Cinzel', serif">Cinzel (Clásica / Sacra / Elegante)</option>
                             <option value="'Outfit', sans-serif">Outfit (Impactante)</option>
                             <option value="'Inter', sans-serif">Inter (Minimalista)</option>
@@ -990,7 +991,8 @@
                         <div class="form-group" style="margin: 0;">
                             <label style="font-size: 0.8rem;">🔤 Tipografía de Portada</label>
                             <select id="thumbFontSelect" onchange="drawThumbnailCanvas()">
-                                <option value="montserrat" selected>Impactante / Sans-Serif (Montserrat)</option>
+                                <option value="helvetica" selected>Suiza / Científica (Helvetica)</option>
+                                <option value="montserrat">Impactante / Sans-Serif (Montserrat)</option>
                                 <option value="cinzel">Sacra / Elegante (Cinzel)</option>
                             </select>
                         </div>
@@ -2301,7 +2303,12 @@ ${rawText}`;
                 if (titleText.length > 25) baseFontSize = 56;
                 if (titleText.length > 40) baseFontSize = 42;
                 
-                const fontStyle = fontSelect === 'cinzel' ? `'Cinzel', serif` : `'Montserrat', sans-serif`;
+                let fontStyle = `'Montserrat', sans-serif`;
+                if (fontSelect === 'cinzel') {
+                    fontStyle = `'Cinzel', serif`;
+                } else if (fontSelect === 'helvetica') {
+                    fontStyle = `Helvetica, Arial, sans-serif`;
+                }
                 tCtx.font = `900 ${baseFontSize}px ${fontStyle}`;
 
                 // Wrap text if too wide
