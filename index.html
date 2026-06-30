@@ -979,6 +979,21 @@
                                 <option value="glow">💡 Resplandor Divino y Brillo</option>
                             </select>
                         </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.8rem;">💛 Color del Texto Viral</label>
+                            <select id="thumbColorSelect" onchange="drawThumbnailCanvas()">
+                                <option value="yellow" selected>💛 Amarillo Clickbait (Máxima Visibilidad)</option>
+                                <option value="white">🤍 Blanco Brillante</option>
+                                <option value="green">💚 Verde Neón Llamativo</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.8rem;">🔤 Tipografía de Portada</label>
+                            <select id="thumbFontSelect" onchange="drawThumbnailCanvas()">
+                                <option value="montserrat" selected>Impactante / Sans-Serif (Montserrat)</option>
+                                <option value="cinzel">Sacra / Elegante (Cinzel)</option>
+                            </select>
+                        </div>
                         <div class="form-group" style="margin: 0;" id="customTitleGroup">
                             <label style="font-size: 0.8rem;">Texto de Portada</label>
                             <input type="text" id="thumbTextInput" placeholder="Título de la canción..." oninput="drawThumbnailCanvas()">
@@ -2277,11 +2292,17 @@ ${rawText}`;
                 tCtx.textAlign = 'center';
                 tCtx.textBaseline = 'middle';
 
+                // Get selected font and color
+                const fontSelect = document.getElementById('thumbFontSelect')?.value || 'montserrat';
+                const colorSelect = document.getElementById('thumbColorSelect')?.value || 'yellow';
+
                 // Dynamically calculate safe font size based on length
                 let baseFontSize = 72;
                 if (titleText.length > 25) baseFontSize = 56;
                 if (titleText.length > 40) baseFontSize = 42;
-                tCtx.font = `900 ${baseFontSize}px 'Cinzel', serif`;
+                
+                const fontStyle = fontSelect === 'cinzel' ? `'Cinzel', serif` : `'Montserrat', sans-serif`;
+                tCtx.font = `900 ${baseFontSize}px ${fontStyle}`;
 
                 // Wrap text if too wide
                 const maxWidth = tCanvas.width - 160; // 80px safe margin on each side
@@ -2303,22 +2324,40 @@ ${rawText}`;
                 lines.push(currentLine.trim());
 
                 // Draw lines centered
-                const textLineHeight = baseFontSize * 1.25;
+                const textLineHeight = baseFontSize * 1.35;
                 const startY = (tCanvas.height / 2) - 30 - ((lines.length - 1) * textLineHeight / 2);
 
                 lines.forEach((line, idx) => {
                     const y = startY + (idx * textLineHeight);
                     
-                    // Golden Glow
-                    tCtx.shadowColor = '#f59e0b';
-                    tCtx.shadowBlur = 40;
-                    tCtx.fillStyle = '#ffffff';
-                    tCtx.fillText(line, tCanvas.width / 2, y);
+                    // Measure text for backdrop banner
+                    const metrics = tCtx.measureText(line);
+                    const lineWidth = metrics.width;
+                    
+                    // Draw a semi-transparent black banner box behind each text line to separate it from the image!
+                    tCtx.save();
+                    tCtx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    tCtx.beginPath();
+                    if (tCtx.roundRect) {
+                        tCtx.roundRect((tCanvas.width / 2) - (lineWidth / 2) - 24, y - (baseFontSize / 2) - 6, lineWidth + 48, baseFontSize + 16, 8);
+                    } else {
+                        tCtx.rect((tCanvas.width / 2) - (lineWidth / 2) - 24, y - (baseFontSize / 2) - 6, lineWidth + 48, baseFontSize + 16);
+                    }
+                    tCtx.fill();
+                    tCtx.restore();
 
-                    tCtx.shadowBlur = 0;
-                    tCtx.strokeStyle = 'rgba(0,0,0,0.95)';
-                    tCtx.lineWidth = 8;
+                    // Apply selected clickbait color
+                    let fillStyle = '#ffffff';
+                    if (colorSelect === 'yellow') fillStyle = '#fbbf24'; // High Contrast Gold Yellow
+                    else if (colorSelect === 'green') fillStyle = '#10b981'; // Neon Green
+
+                    // Render main text with black stroke for ultra contrast
+                    tCtx.strokeStyle = '#000000';
+                    tCtx.lineWidth = 10;
                     tCtx.strokeText(line, tCanvas.width / 2, y);
+                    
+                    tCtx.fillStyle = fillStyle;
+                    tCtx.fillText(line, tCanvas.width / 2, y);
                 });
 
                 // Draw Badge
