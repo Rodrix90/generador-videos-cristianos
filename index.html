@@ -14,23 +14,24 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
-            --bg-main: #0b0d17;
-            --bg-card: #151929;
-            --bg-card-hover: #1e2438;
-            --border: #2a324b;
+            --bg-main: #060813;
+            --bg-card: rgba(21, 25, 41, 0.65);
+            --bg-card-hover: rgba(30, 36, 56, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
             --primary: #8b5cf6;
             --primary-hover: #7c3aed;
             --accent: #f59e0b;
-            --accent-glow: rgba(245, 158, 11, 0.3);
+            --accent-glow: rgba(245, 158, 11, 0.35);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --danger: #ef4444;
             --success: #10b981;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 18px;
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 24px;
             --font-main: 'Inter', sans-serif;
             --font-title: 'Outfit', sans-serif;
+            --backdrop: blur(16px);
         }
 
         * {
@@ -118,6 +119,7 @@
             padding: 0.75rem 1.5rem;
             position: relative;
             overflow-x: auto;
+            backdrop-filter: var(--backdrop);
         }
 
         .step-item {
@@ -178,6 +180,7 @@
             border-radius: var(--radius-lg);
             padding: 2rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: var(--backdrop);
         }
 
         .view-content.active {
@@ -617,8 +620,8 @@
     <!-- Header -->
     <header>
         <div class="logo-container">
-            <div class="logo-icon">
-                <i data-lucide="cross"></i>
+            <div class="logo-icon" style="background: none; box-shadow: none; padding: 0; width: 44px; height: 44px; overflow: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: flex-start; border: 1px solid var(--border);">
+                <img src="watermark.png" style="height: 100%; width: auto; object-fit: cover; object-position: left;" alt="Rodrigo Gonzalez Logo">
             </div>
             <div>
                 <div class="logo-title">Generador de Videos Cristianos</div>
