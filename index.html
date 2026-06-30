@@ -2990,23 +2990,66 @@ ${rawText}`;
             }
         }
 
-        function loadYoutubeShortVideo() {
+        async function loadYoutubeShortVideo() {
             const urlInput = document.getElementById('ytVideoUrlInput').value.trim();
             if (!urlInput) {
-                alert('Por favor ingresa una URL válida o selecciona un archivo de video local.');
+                alert('Por favor ingresa una URL de YouTube válida.');
                 return;
             }
-            
-            // Para URLs de YouTube, usamos un proxy público de reproducción o advertimos la necesidad de descarga
-            if (urlInput.includes('youtube.com') || urlInput.includes('youtu.be')) {
-                alert('Por restricciones de seguridad (CORS) de YouTube, para procesar la URL te recomendamos descargar el MP4 de tu video y seleccionarlo abajo como "Video Local".\n\nNo obstante, intentaremos cargarlo.');
-                // Fallback attempt
-                const player = document.getElementById('shortsPreviewVideo');
-                player.src = urlInput;
+
+            const loadBtn = document.querySelector("button[onclick='loadYoutubeShortVideo()']");
+            if (loadBtn) {
+                loadBtn.disabled = true;
+                loadBtn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Obteniendo...`;
+                lucide.createIcons();
+            }
+
+            // Try to resolve YouTube URL via Cobalt API
+            if (urlInput.includes('youtube.com') || urlInput.includes('youtu.be') || urlInput.includes('shorts')) {
+                try {
+                    // Query Cobalt API
+                    const response = await fetch("https://api.cobalt.tools/api/json", {
+                        method: "POST",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            url: urlInput,
+                            videoQuality: "720",
+                            isNoCook: true
+                        })
+                    });
+                    const result = await response.json();
+                    
+                    if (result.url) {
+                        const player = document.getElementById('shortsPreviewVideo');
+                        player.crossOrigin = "anonymous";
+                        player.src = result.url;
+                        player.play();
+                        
+                        // Generar metadatos genéricos basados en la URL
+                        document.getElementById('urlShortTitle').value = "¡Hermoso fragmento de adoración! 🕊️ #shorts";
+                        document.getElementById('urlShortDesc').value = `Te comparto este fragmento especial. Escucha la alabanza completa en mi canal oficial Rodrigo Gonzalez. \n\n#musicacristiana #adoracion #himnosantiguos #rodrigogonzalez #shorts`;
+                        
+                        alert('¡Video de YouTube enlazado correctamente! Ya puedes seleccionar el segundo de inicio y presionar Generar.');
+                    } else {
+                        throw new Error("No direct stream URL returned from resolver.");
+                    }
+                } catch (err) {
+                    console.error("Resolver error:", err);
+                    alert("No pudimos extraer el flujo de video directo automáticamente debido a restricciones de YouTube.\n\nPor favor, descarga el video MP4 a tu computadora/celular y cárgalo usando el botón 'Cargar Video Local' de abajo.");
+                }
             } else {
+                // If it is a direct MP4 URL already
                 const player = document.getElementById('shortsPreviewVideo');
                 player.src = urlInput;
                 player.play();
+            }
+
+            if (loadBtn) {
+                loadBtn.disabled = false;
+                loadBtn.innerHTML = `Cargar`;
             }
         }
 
