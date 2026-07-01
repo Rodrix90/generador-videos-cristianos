@@ -1021,9 +1021,24 @@
                 </h3>
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Genera contenido viral en formato vertical para Shorts/Reels y traduce tus metadatos para llegar a audiencias internacionales.</p>
                 
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                    <div class="form-group" style="margin: 0; min-width: 140px;">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Inicio del Short (seg):</label>
+                        <input type="number" id="hymnShortStart" value="0" min="0" style="padding: 0.25rem; font-size: 0.8rem; width: 100%;">
+                    </div>
+                    <div class="form-group" style="margin: 0; min-width: 140px;">
+                        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Duración:</label>
+                        <select id="hymnShortDuration" style="padding: 0.25rem; font-size: 0.8rem; width: 100%;">
+                            <option value="30" selected>30 Segundos</option>
+                            <option value="15">15 Segundos</option>
+                            <option value="59">59 Segundos</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <button class="btn btn-secondary btn-sm" onclick="exportShortsClip()" id="btnExportShorts">
-                        <i data-lucide="smartphone"></i> 📱 Exportar Clip para Shorts / Reels (Vertical 9:16)
+                        <i data-lucide="smartphone"></i> 📱 Generar Short 9:16 desde Himno Actual
                     </button>
                     <button class="btn btn-secondary btn-sm" onclick="translateMetadata('en')">
                         🇺🇸 Traducir Metadatos a Inglés (English)
@@ -2834,6 +2849,9 @@ ${rawText}`;
             progress.innerText = '📱 Renderizando clip vertical para Shorts/Reels (1080x1920)...';
             if (btn) btn.disabled = true;
 
+            const startSec = parseFloat(document.getElementById('hymnShortStart')?.value) || 0;
+            const durationSec = parseFloat(document.getElementById('hymnShortDuration')?.value) || 30;
+
             const sCanvas = document.createElement('canvas');
             sCanvas.width = 1080;
             sCanvas.height = 1920;
@@ -2841,12 +2859,30 @@ ${rawText}`;
 
             const player = document.getElementById('audioPlayer');
             const stream = sCanvas.captureStream(30);
+            
+            // Safe Audio routing
             if (!state.audioCtx) {
                 state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                state.audioSource = state.audioCtx.createMediaElementSource(player);
             }
-            const dest = state.audioCtx.createMediaStreamDestination();
-            state.audioSource.connect(dest);
+            if (state.audioCtx.state === 'suspended') {
+                await state.audioCtx.resume();
+            }
+            
+            let source = player._audioSourceNode;
+            if (!source) {
+                source = state.audioCtx.createMediaElementSource(player);
+                player._audioSourceNode = source;
+                
+                const dest = state.audioCtx.createMediaStreamDestination();
+                player._audioStreamDest = dest;
+                
+                source.connect(dest);
+                source.connect(state.audioCtx.destination);
+            }
+            const dest = player._audioStreamDest;
+            
+            // Clear any existing tracks on stream first, then add the new one
+            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
             dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
             const recordedChunks = [];
@@ -2866,9 +2902,27 @@ ${rawText}`;
             }
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
 
-            player.currentTime = 0;
+            // Ir al segundo de inicio y esperar seeked
+            player.currentTime = startSec;
+            await new Promise(resolve => {
+                const onSeeked = () => {
+                    player.removeEventListener('seeked', onSeeked);
+                    resolve();
+                };
+                player.addEventListener('seeked', onSeeked);
+                setTimeout(resolve, 1500); // Safety timeout
+            });
+
+            let startTime = null;
             mediaRecorder.start();
-            player.play();
+            try {
+                player.muted = false;
+                await player.play();
+            } catch (playErr) {
+                console.warn("Autoplay block on exportShortsClip, playing muted as fallback:", playErr);
+                player.muted = true;
+                await player.play().catch(e => console.error("Could not play video:", e));
+            }
 
             let animActive = true;
             function drawShortFrame() {
@@ -2880,7 +2934,7 @@ ${rawText}`;
                 const seg = state.segments[activeIndex];
                 const img = loadedImages[activeIndex];
 
-                sCtx.fillStyle = '#0b0d17';
+                sCtx.fillStyle = '#09090b';
                 sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
 
                 if (img && img.complete && img.naturalWidth !== 0) {
@@ -2892,22 +2946,45 @@ ${rawText}`;
                     sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
                 }
 
+                // Dibujar Partículas Celestiales en el Short para que se vea genial y profesional
+                drawParticles(sCtx, sCanvas.width, sCanvas.height);
+
                 if (seg && seg.text) {
                     const textLines = seg.text.split('\n');
                     sCtx.textAlign = 'center';
                     sCtx.textBaseline = 'middle';
-                    sCtx.font = "bold 72px 'Montserrat', sans-serif";
-                    const lineHeight = 95;
+                    
+                    // Auto-shrink dynamic font size for Short narrow width
+                    let baseFontSize = 72;
+                    let currentSize = baseFontSize;
+                    sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                    const maxAllowedWidth = sCanvas.width - 140; // 70px margins
+                    
+                    let maxLineWidth = 0;
+                    textLines.forEach(line => {
+                        const w = sCtx.measureText(line).width;
+                        if (w > maxLineWidth) maxLineWidth = w;
+                    });
+                    
+                    if (maxLineWidth > maxAllowedWidth) {
+                        currentSize = Math.floor(baseFontSize * (maxAllowedWidth / maxLineWidth));
+                        currentSize = Math.max(42, currentSize);
+                        sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                    }
+
+                    const lineHeight = currentSize * 1.35;
                     const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
                     textLines.forEach((line, idx) => {
                         const y = startY + (idx * lineHeight);
+                        
                         sCtx.shadowColor = '#f59e0b';
                         sCtx.shadowBlur = 30;
                         sCtx.fillStyle = '#ffffff';
                         sCtx.fillText(line, sCanvas.width / 2, y);
+                        
                         sCtx.shadowBlur = 0;
                         sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
-                        sCtx.lineWidth = 6;
+                        sCtx.lineWidth = 8;
                         sCtx.strokeText(line, sCanvas.width / 2, y);
                     });
                 }
@@ -2915,21 +2992,33 @@ ${rawText}`;
                 // Draw Watermark on Shorts
                 if (watermarkImg.complete && watermarkImg.naturalWidth !== 0) {
                     sCtx.save();
-                    sCtx.globalAlpha = 0.85;
-                    sCtx.drawImage(watermarkImg, (sCanvas.width - 400)/2, 120, 400, 104);
+                    sCtx.globalAlpha = 0.9;
+                    sCtx.drawImage(watermarkImg, (sCanvas.width - 400)/2, 140, 400, 104);
                     sCtx.restore();
                 }
 
-                if (animActive) requestAnimationFrame(drawShortFrame);
+                // Iniciar contador de tiempo de grabación real (wall-clock)
+                if (startTime === null) {
+                    startTime = Date.now();
+                }
+                const elapsedRealTime = (Date.now() - startTime) / 1000;
+
+                // Stop conditions
+                if (elapsedRealTime >= durationSec || player.ended || (player.currentTime >= (startSec + durationSec))) {
+                    animActive = false;
+                    if (mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                } else {
+                    requestAnimationFrame(drawShortFrame);
+                }
             }
             drawShortFrame();
 
-            player.onended = () => {
-                animActive = false;
-                mediaRecorder.stop();
-            };
-
             mediaRecorder.onstop = () => {
+                player.pause();
+                animActive = false;
+                
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -2938,6 +3027,7 @@ ${rawText}`;
                 a.download = `short_vertical_${Date.now()}.webm`;
                 document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
                 progress.innerHTML = `<span style="color:var(--success);">¡Short Vertical exportado con éxito!</span>`;
                 if (btn) btn.disabled = false;
             };
