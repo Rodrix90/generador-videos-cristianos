@@ -1040,6 +1040,9 @@
                     <button class="btn btn-secondary btn-sm" onclick="exportShortsClip()" id="btnExportShorts">
                         <i data-lucide="smartphone"></i> 📱 Generar Short 9:16 desde Himno Actual
                     </button>
+                    <button class="btn btn-primary btn-sm" id="btnUploadHymnShort" onclick="uploadShortToYouTube()" style="display: none; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i data-lucide="youtube"></i> 🚀 Publicar Short en YouTube
+                    </button>
                     <button class="btn btn-secondary btn-sm" onclick="translateMetadata('en')">
                         🇺🇸 Traducir Metadatos a Inglés (English)
                     </button>
@@ -1291,6 +1294,20 @@
                             <div style="display: flex; justify-content: flex-end; margin-top: 0.4rem;">
                                 <button class="btn btn-secondary btn-sm" onclick="copyToClipboard('urlShortTags')"><i data-lucide="copy"></i> Copiar Tags</button>
                             </div>
+                        </div>
+
+                        <!-- Botón de Subida Directa a YouTube para Shorts -->
+                        <div style="margin-top: 1.25rem; border-top: 1px dashed var(--border); padding-top: 1rem;">
+                            <label style="font-size: 0.8rem; display: block; margin-bottom: 0.25rem;">Privacidad al Publicar Short</label>
+                            <select id="shortPrivacySelect" style="width: 100%; margin-bottom: 0.75rem; padding: 0.5rem; background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem;">
+                                <option value="private" selected>🔒 Privado (Solo tú puedes verlo)</option>
+                                <option value="unlisted">🔗 Oculto (Solo con enlace)</option>
+                                <option value="public">🌐 Público (Visible para todos)</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm" id="btnUploadShortYouTube" onclick="uploadShortToYouTube()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                <i data-lucide="youtube"></i> 🚀 Publicar Short Directamente en YouTube
+                            </button>
+                            <div id="shortUploadProgress" style="margin-top: 0.75rem; text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--primary); display: none;"></div>
                         </div>
                     </div>
                 </div>
@@ -2540,6 +2557,131 @@ ${rawText}`;
             }
         }
 
+        // Direct YouTube Upload for Shorts
+        async function uploadShortToYouTube() {
+            if (!state.lastShortVideoBlob) {
+                alert('Primero debes generar el video Short presionando el botón de Generar arriba.');
+                return;
+            }
+            if (!state.keys.googleClientId) {
+                alert('Para usar la subida directa por API, debes configurar tu Google Cloud Client ID en el panel de configuración.');
+                toggleModal('settingsModal', true);
+                return;
+            }
+
+            const activeTab = document.getElementById('mainShortsMode').style.display !== 'none' ? 'shortsTab' : 'step4';
+            const statusBox = activeTab === 'shortsTab' 
+                ? document.getElementById('shortUploadProgress') 
+                : document.getElementById('shortsRenderProgress');
+
+            statusBox.style.display = 'block';
+            statusBox.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Autenticando con tu cuenta de Google...`;
+            lucide.createIcons();
+
+            try {
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: state.keys.googleClientId,
+                    scope: 'https://www.googleapis.com/auth/youtube.upload',
+                    callback: async (tokenResponse) => {
+                        if (tokenResponse.access_token) {
+                            statusBox.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Publicando Short en tu canal de YouTube...`;
+                            lucide.createIcons();
+                            await performYouTubeShortUpload(tokenResponse.access_token);
+                        } else {
+                            statusBox.style.display = 'none';
+                            alert('No se obtuvo permiso de autenticación de Google.');
+                        }
+                    }
+                });
+                client.requestAccessToken();
+            } catch (err) {
+                console.error(err);
+                statusBox.style.display = 'none';
+                alert('Error iniciando autenticación de Google: ' + err.message);
+            }
+        }
+
+        async function performYouTubeShortUpload(accessToken) {
+            const activeTab = document.getElementById('mainShortsMode').style.display !== 'none' ? 'shortsTab' : 'step4';
+            const statusBox = activeTab === 'shortsTab' 
+                ? document.getElementById('shortUploadProgress') 
+                : document.getElementById('shortsRenderProgress');
+
+            let title = "Nuevo Short 🕊️ #shorts";
+            let description = "";
+            let privacy = "private";
+
+            if (activeTab === 'shortsTab') {
+                title = document.getElementById('urlShortTitle')?.value || title;
+                description = document.getElementById('urlShortDesc')?.value || description;
+                privacy = document.getElementById('shortPrivacySelect')?.value || privacy;
+            } else {
+                // Si viene del himno del paso 4, usamos títulos y metadatos del video largo
+                title = (document.getElementById('ytTitleInput')?.value || "Nuevo Himno 🕊️").substring(0, 80) + " #shorts";
+                description = document.getElementById('ytDescriptionTextarea')?.value || "";
+                privacy = document.getElementById('ytPrivacySelect')?.value || privacy;
+            }
+
+            const videoBlob = state.lastShortVideoBlob;
+
+            const metadata = {
+                snippet: {
+                    title: title,
+                    description: description,
+                    tags: ["shorts", "musicacristiana", "adoracion", "rodrigogonzalez"],
+                    categoryId: '10' // Categoría Música
+                },
+                status: {
+                    privacyStatus: privacy,
+                    embeddable: true
+                }
+            };
+
+            try {
+                // Paso 1: Inicializar sesión resumable
+                const initRes = await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                        'X-Upload-Content-Length': videoBlob.size,
+                        'X-Upload-Content-Type': 'video/webm'
+                    },
+                    body: JSON.stringify(metadata)
+                });
+
+                if (!initRes.ok) {
+                    throw new Error(`Error en inicialización HTTP ${initRes.status}`);
+                }
+
+                const uploadUrl = initRes.headers.get('Location');
+                statusBox.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Subiendo Short (${(videoBlob.size / 1024 / 1024).toFixed(1)} MB)... Por favor espera.`;
+                lucide.createIcons();
+
+                // Paso 2: Transmitir binario
+                const uploadRes = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'video/webm'
+                    },
+                    body: videoBlob
+                });
+
+                const result = await uploadRes.json();
+                if (result.id) {
+                    statusBox.innerHTML = `<span style="color:var(--success);">¡Short publicado con éxito! ID: ${result.id}</span>`;
+                    alert(`¡Tu video Short ha sido publicado con éxito en tu canal de YouTube!\nID del video: ${result.id}\nEnlace: https://youtube.com/shorts/${result.id}`);
+                } else {
+                    statusBox.style.display = 'none';
+                    alert('Error en la API de YouTube: ' + JSON.stringify(result));
+                }
+            } catch (err) {
+                console.error(err);
+                statusBox.style.display = 'none';
+                alert('Error al transferir el Short a YouTube: ' + err.message);
+            }
+        }
+
         // Main Mode Navigation (Single Video vs Compilation vs Shorts URL)
         function switchMainMode(mode) {
             const btnSingle = document.getElementById('tabBtnSingle');
@@ -3020,6 +3162,8 @@ ${rawText}`;
                 animActive = false;
                 
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                state.lastShortVideoBlob = blob; // Guardar globalmente
+                
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -3028,7 +3172,15 @@ ${rawText}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+                
                 progress.innerHTML = `<span style="color:var(--success);">¡Short Vertical exportado con éxito!</span>`;
+                
+                // Mostrar botón de subida directa
+                const uploadBtn = document.getElementById('btnUploadHymnShort');
+                if (uploadBtn) {
+                    uploadBtn.style.display = 'inline-flex';
+                }
+                
                 if (btn) btn.disabled = false;
             };
         }
@@ -3356,6 +3508,8 @@ ${rawText}`;
                 animActive = false;
                 
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                state.lastShortVideoBlob = blob; // Guardar globalmente
+                
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -3365,7 +3519,7 @@ ${rawText}`;
                 a.click();
                 document.body.removeChild(a);
                 
-                progress.innerHTML = `<span style="color:var(--success);">¡Short de 9:16 generado y descargado con éxito!</span>`;
+                progress.innerHTML = `<span style="color:var(--success);">¡Short de 9:16 generado y descargado con éxito! Ya puedes publicarlo a YouTube abajo.</span>`;
                 if (btn) btn.disabled = false;
             };
         }
