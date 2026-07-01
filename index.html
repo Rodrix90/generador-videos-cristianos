@@ -1234,6 +1234,15 @@
                             </select>
                         </div>
                     </div>
+                    
+                    <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.85rem;">📐 Formato de Encuadre</label>
+                        <select id="shortsFramingSelect" style="width: 100%;">
+                            <option value="crop" selected>✂️ Recorte Central (9:16 Completo)</option>
+                            <option value="blur">✨ Fondo Difuminado (Estilo Premium)</option>
+                            <option value="fit">⬛ Ajustar Completo (con Barras Negras)</option>
+                        </select>
+                    </div>
 
                     <button class="btn btn-accent" onclick="startUrlShortRecording()" id="btnRecordUrlShort" style="margin-top: 0.5rem;">
                         <i data-lucide="video"></i> Generar Video Short (9:16 Vertical)
@@ -3122,17 +3131,32 @@ ${rawText}`;
 
             const stream = sCanvas.captureStream(30);
             
-            // Audio Routing
-            let audioStreamDest;
+            // Audio Routing: Primero intentamos a través de captureStream nativo del reproductor de video (muy compatible con celulares/Chrome)
+            let audioTracks = [];
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioCtx.createMediaElementSource(player);
-                audioStreamDest = audioCtx.createMediaStreamDestination();
-                source.connect(audioStreamDest);
-                source.connect(audioCtx.destination); // Oír mientras graba
-                audioStreamDest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-            } catch(e) {
-                console.warn("Audio Context already active or direct routing fallback.", e);
+                if (player.captureStream) {
+                    audioTracks = player.captureStream().getAudioTracks();
+                } else if (player.mozCaptureStream) {
+                    audioTracks = player.mozCaptureStream().getAudioTracks();
+                }
+            } catch (e) {
+                console.warn("Natively capturing video element audio tracks failed, falling back to Web Audio API routing...", e);
+            }
+
+            if (audioTracks.length > 0) {
+                audioTracks.forEach(track => stream.addTrack(track));
+            } else {
+                // Fallback using Web Audio API
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioCtx.createMediaElementSource(player);
+                    const audioStreamDest = audioCtx.createMediaStreamDestination();
+                    source.connect(audioStreamDest);
+                    source.connect(audioCtx.destination); // Seguir oyendo el audio
+                    audioStreamDest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+                } catch(e) {
+                    console.warn("Web Audio API routing failed or already bound. Trying directly:", e);
+                }
             }
 
             const recordedChunks = [];
@@ -3154,38 +3178,67 @@ ${rawText}`;
 
             // Ir al segundo de inicio
             player.currentTime = cutStart;
-            await new Promise(r => setTimeout(r, 600)); // Esperar buffer
+            await new Promise(r => setTimeout(r, 800)); // Más buffer para sincronía
 
             let startTime = null;
             mediaRecorder.start();
             try {
+                player.muted = false; // Asegurar que tenga sonido
                 await player.play();
             } catch (playErr) {
-                console.warn("Autoplay block, playing muted as fallback:", playErr);
+                console.warn("Autoplay blocked player.play(), trying muted fallback:", playErr);
                 player.muted = true;
-                await player.play().catch(e => console.error("Could not play video:", e));
+                await player.play().catch(e => console.error("Could not play video at all:", e));
             }
 
+            const framingSelect = document.getElementById('shortsFramingSelect')?.value || 'crop';
             let animActive = true;
+
             const drawFrame = () => {
                 if (!animActive) return;
                 
-                // Draw background dark fill
-                sCtx.fillStyle = '#0b0d17';
+                // Fondo oscuro premium
+                sCtx.fillStyle = '#09090b';
                 sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
 
-                // Draw centered cropped video to fit 9:16
-                const videoRatio = (player.videoWidth && player.videoHeight) ? (player.videoWidth / player.videoHeight) : (16/9);
-                const targetWidth = sCanvas.height * videoRatio;
-                const xOffset = (sCanvas.width - targetWidth) / 2;
-                
-                sCtx.drawImage(player, xOffset, 0, targetWidth, sCanvas.height);
+                const vW = player.videoWidth || 1920;
+                const vH = player.videoHeight || 1080;
 
-                // Draw Watermark
+                if (framingSelect === 'crop') {
+                    // Recorte Central Inteligente 9:16 Completo
+                    // Escala el video para que el alto cubra todo el lienzo
+                    const scale = sCanvas.height / vH;
+                    const drawW = vW * scale;
+                    const drawX = (sCanvas.width - drawW) / 2;
+                    sCtx.drawImage(player, drawX, 0, drawW, sCanvas.height);
+                } else if (framingSelect === 'blur') {
+                    // Fondo difuminado estilo premium (Muy usado en Shorts)
+                    sCtx.save();
+                    sCtx.filter = 'blur(30px) brightness(0.4)';
+                    const scaleBackground = sCanvas.height / vH;
+                    const bgW = vW * scaleBackground;
+                    const bgX = (sCanvas.width - bgW) / 2;
+                    sCtx.drawImage(player, bgX, 0, bgW, sCanvas.height);
+                    sCtx.restore();
+
+                    // Dibujar video original al centro (proporción original)
+                    const scaleFit = sCanvas.width / vW;
+                    const fitH = vH * scaleFit;
+                    const fitY = (sCanvas.height - fitH) / 2;
+                    sCtx.drawImage(player, 0, fitY, sCanvas.width, fitH);
+                } else {
+                    // Ajustar al Centro con Barras Negras
+                    const scaleFit = sCanvas.width / vW;
+                    const fitH = vH * scaleFit;
+                    const fitY = (sCanvas.height - fitH) / 2;
+                    sCtx.drawImage(player, 0, fitY, sCanvas.width, fitH);
+                }
+
+                // Dibujar Marca de Agua centradita arriba
                 if (watermarkImg.complete && watermarkImg.naturalWidth !== 0) {
                     sCtx.save();
-                    sCtx.globalAlpha = 0.85;
-                    sCtx.drawImage(watermarkImg, (sCanvas.width - 440)/2, 120, 440, 115);
+                    sCtx.globalAlpha = 0.9;
+                    sCtx.drawImage(watermarkImg, (sCanvas.width - 440)/2, 140, 440, 115);
                     sCtx.restore();
                 }
 
