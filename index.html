@@ -2670,7 +2670,20 @@ ${rawText}`;
             dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
             const recordedChunks = [];
-            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 15000000 });
+            let mediaRecorder;
+            try {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 15000000 });
+            } catch (e) {
+                try {
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 15000000 });
+                } catch (e2) {
+                    try {
+                        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 15000000 });
+                    } catch (e3) {
+                        mediaRecorder = new MediaRecorder(stream);
+                    }
+                }
+            }
 
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
 
@@ -2828,7 +2841,20 @@ ${rawText}`;
             dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
             const recordedChunks = [];
-            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 8000000 });
+            let mediaRecorder;
+            try {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 8000000 });
+            } catch (e) {
+                try {
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 8000000 });
+                } catch (e2) {
+                    try {
+                        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8000000 });
+                    } catch (e3) {
+                        mediaRecorder = new MediaRecorder(stream);
+                    }
+                }
+            }
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
 
             player.currentTime = 0;
@@ -3110,15 +3136,35 @@ ${rawText}`;
             }
 
             const recordedChunks = [];
-            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 8000000 });
+            let mediaRecorder;
+            try {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 8000000 });
+            } catch (e) {
+                try {
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 8000000 });
+                } catch (e2) {
+                    try {
+                        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8000000 });
+                    } catch (e3) {
+                        mediaRecorder = new MediaRecorder(stream);
+                    }
+                }
+            }
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
 
             // Ir al segundo de inicio
             player.currentTime = cutStart;
             await new Promise(r => setTimeout(r, 600)); // Esperar buffer
 
+            let startTime = null;
             mediaRecorder.start();
-            player.play();
+            try {
+                await player.play();
+            } catch (playErr) {
+                console.warn("Autoplay block, playing muted as fallback:", playErr);
+                player.muted = true;
+                await player.play().catch(e => console.error("Could not play video:", e));
+            }
 
             let animActive = true;
             const drawFrame = () => {
@@ -3129,7 +3175,7 @@ ${rawText}`;
                 sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
 
                 // Draw centered cropped video to fit 9:16
-                const videoRatio = player.videoWidth / player.videoHeight;
+                const videoRatio = (player.videoWidth && player.videoHeight) ? (player.videoWidth / player.videoHeight) : (16/9);
                 const targetWidth = sCanvas.height * videoRatio;
                 const xOffset = (sCanvas.width - targetWidth) / 2;
                 
@@ -3143,10 +3189,18 @@ ${rawText}`;
                     sCtx.restore();
                 }
 
-                // Check cut limits
-                if (player.currentTime >= (cutStart + cutDuration) || player.ended) {
+                // Iniciar contador de tiempo de grabación real (wall-clock)
+                if (startTime === null) {
+                    startTime = Date.now();
+                }
+                const elapsedRealTime = (Date.now() - startTime) / 1000;
+
+                // Terminar grabación si se alcanzó el tiempo, el video finalizó o por seguridad de tiempo de reproducción
+                if (elapsedRealTime >= cutDuration || player.ended || (player.currentTime >= (cutStart + cutDuration))) {
                     animActive = false;
-                    mediaRecorder.stop();
+                    if (mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
                 } else {
                     requestAnimationFrame(drawFrame);
                 }
@@ -3166,6 +3220,7 @@ ${rawText}`;
                 a.download = `youtube_short_${Date.now()}.webm`;
                 document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
                 
                 progress.innerHTML = `<span style="color:var(--success);">¡Short de 9:16 generado y descargado con éxito!</span>`;
                 if (btn) btn.disabled = false;
