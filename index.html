@@ -1202,32 +1202,94 @@
     <!-- Main Content for YouTube to Short Tab -->
     <main id="mainShortsMode" style="display: none;">
         <section class="view-content active" style="display: block;">
-            <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">📱 Crear Short desde Video de YouTube (9:16)</h2>
-            <p style="color: var(--text-muted); margin-bottom: 2rem;">Corta cualquier segmento de tus videos subidos en YouTube, redimenciónalo a vertical 9:16 para Shorts y agrégale metadatos listos para subir.</p>
+            <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">📱 Creador Profesional de Shorts (9:16)</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Elige entre recortar un video de YouTube/MP4, o subir un audio MP3 y generar un Short celestial con inteligencia artificial.</p>
+
+            <!-- Selector de Origen de Short -->
+            <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <button class="btn btn-secondary btn-sm active" id="btnShortModeVideo" onclick="toggleShortsSubMode('video')" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+                    <i data-lucide="video"></i> Cortar Video (MP4 / YouTube)
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btnShortModeAudio" onclick="toggleShortsSubMode('audio')" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+                    <i data-lucide="music"></i> Crear desde MP3 + Imagen Celestial
+                </button>
+            </div>
 
             <div class="step1-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem;">
-                <!-- Left panel: URL input and Preview player -->
+                <!-- Left panel wrapper -->
                 <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
-                        <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
-                            <i data-lucide="link"></i> Enlace del Video
-                        </h3>
-                        <div class="form-group" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                            <input type="text" id="ytVideoUrlInput" placeholder="https://www.youtube.com/watch?v=... o archivo local MP4" style="flex: 1;">
-                            <button class="btn btn-primary btn-sm" onclick="loadYoutubeShortVideo()">Cargar</button>
+                    <!-- Video Source Panel -->
+                    <div id="shortsVideoSourceGroup" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="link"></i> Enlace del Video
+                            </h3>
+                            <div class="form-group" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <input type="text" id="ytVideoUrlInput" placeholder="https://www.youtube.com/watch?v=... o archivo local MP4" style="flex: 1;">
+                                <button class="btn btn-primary btn-sm" onclick="loadYoutubeShortVideo()">Cargar</button>
+                            </div>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">Puedes ingresar enlaces directos de video o seleccionar un archivo de video local si lo tienes descargado.</p>
+                            
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label style="font-size: 0.8rem; margin: 0;">O Cargar Video Local (.mp4/.webm):</label>
+                                <input type="file" accept="video/*" onchange="handleLocalShortVideoSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
+                            </div>
                         </div>
-                        <p style="font-size: 0.75rem; color: var(--text-muted);">Puedes ingresar enlaces directos de video o seleccionar un archivo de video local si lo tienes descargado.</p>
-                        
-                        <div class="form-group" style="margin-top: 1rem;">
-                            <label style="font-size: 0.8rem; margin: 0;">O Cargar Video Local (.mp4/.webm):</label>
-                            <input type="file" accept="video/*" onchange="handleLocalShortVideoSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
+
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Vista Previa de Corte</span>
+                            <div style="width: 270px; height: 480px; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--accent); position: relative;">
+                                <video id="shortsPreviewVideo" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; align-items: center;">
-                        <span style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Vista Previa de Corte</span>
-                        <div style="width: 270px; height: 480px; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--accent); position: relative;">
-                            <video id="shortsPreviewVideo" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <!-- Audio Source Panel (New!) -->
+                    <div id="shortsAudioSourceGroup" style="display: none; flex-direction: column; gap: 1.5rem;">
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="music"></i> Cargar Audio MP3
+                            </h3>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 0.8rem; margin: 0;">Seleccionar archivo de audio (.mp3/.wav):</label>
+                                <input type="file" accept="audio/*" id="shortsAudioFileInput" onchange="handleShortsAudioSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
+                                <audio id="shortsAudioPreviewPlayer" controls style="width: 100%; margin-top: 0.75rem; display: none;"></audio>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="align-left"></i> Letra / Texto del Short
+                            </h3>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 0.8rem; margin: 0;">Escribe la letra o frase que se mostrará en el Short:</label>
+                                <textarea id="shortsAudioLyrics" placeholder="Escribe aquí el texto que saldrá en la pantalla..." style="min-height: 80px; font-size: 0.85rem; margin-top: 0.5rem; width: 100%; background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;"></textarea>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="image"></i> Fondo de Imagen Celestial
+                            </h3>
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label style="font-size: 0.8rem; margin: 0;">Cargar Imagen Local:</label>
+                                <input type="file" accept="image/*" id="shortsBgImageInput" onchange="handleShortsBgImageSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
+                            </div>
+                            <div style="border-top: 1px dashed var(--border); padding-top: 0.75rem; margin-top: 0.75rem;">
+                                <label style="font-size: 0.8rem; margin: 0;">O Generar con Inteligencia Artificial:</label>
+                                <div class="form-group" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 0;">
+                                    <input type="text" id="shortsIaPromptInput" placeholder="Ej: Rayos celestiales de luz divina atravesando nubes, 4k..." style="flex: 1; font-size: 0.8rem;">
+                                    <button class="btn btn-secondary btn-sm" onclick="generateShortsIaBg()" id="btnGenerateShortsIaBg">Generar IA</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Previsualización de Imagen</span>
+                            <div style="width: 270px; height: 480px; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--accent); position: relative;">
+                                <img id="shortsAudioBgPreview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                <div id="shortsAudioBgPlaceholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem;">Sin imagen de fondo</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1246,6 +1308,7 @@
                         <div class="form-group">
                             <label style="font-size: 0.85rem;">Duración (seg):</label>
                             <select id="shortsCutDuration" style="width: 100%;">
+                                <option value="10">10 Segundos</option>
                                 <option value="15" selected>15 Segundos</option>
                                 <option value="30">30 Segundos</option>
                                 <option value="59">59 Segundos (Máximo)</option>
@@ -3245,6 +3308,336 @@ ${rawText}`;
             if (typeof drawCanvasFrame === 'function') {
                 drawCanvasFrame(0);
             }
+        }
+
+        // Origen de Short Toggle
+        function toggleShortsSubMode(mode) {
+            const btnVideo = document.getElementById('btnShortModeVideo');
+            const btnAudio = document.getElementById('btnShortModeAudio');
+            
+            const groupVideo = document.getElementById('shortsVideoSourceGroup');
+            const groupAudio = document.getElementById('shortsAudioSourceGroup');
+            
+            const recordBtn = document.getElementById('btnRecordUrlShort');
+
+            if (mode === 'video') {
+                btnVideo.classList.add('active');
+                btnAudio.classList.remove('active');
+                groupVideo.style.display = 'flex';
+                groupAudio.style.display = 'none';
+                
+                recordBtn.setAttribute('onclick', 'startUrlShortRecording()');
+                recordBtn.innerHTML = `<i data-lucide="video"></i> Generar Video Short (9:16 Vertical)`;
+            } else {
+                btnVideo.classList.remove('active');
+                btnAudio.classList.add('active');
+                groupVideo.style.display = 'none';
+                groupAudio.style.display = 'flex';
+                
+                recordBtn.setAttribute('onclick', 'startAudioShortRecording()');
+                recordBtn.innerHTML = `<i data-lucide="sparkles"></i> Generar Short desde MP3 (9:16 Vertical)`;
+            }
+            lucide.createIcons();
+        }
+
+        // Variables de estado para Shorts MP3
+        let shortsAudioFile = null;
+        let shortsAudioUrl = null;
+        let shortsBgImage = null;
+
+        function handleShortsAudioSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                shortsAudioFile = file;
+                shortsAudioUrl = URL.createObjectURL(file);
+                const audioPlayer = document.getElementById('shortsAudioPreviewPlayer');
+                audioPlayer.src = shortsAudioUrl;
+                audioPlayer.style.display = 'block';
+                audioPlayer.play();
+                
+                // Generar metadatos
+                const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, " ").trim();
+                document.getElementById('urlShortTitle').value = `${cleanName} 🕊️ #shorts`;
+                document.getElementById('urlShortDesc').value = `Te comparto este fragmento instrumental especial. Escucha más alabanzas en mi canal de Rodrigo Gonzalez. \n\n#musicacristiana #adoracion #himnosantiguos #rodrigogonzalez #shorts`;
+            }
+        }
+
+        function handleShortsBgImageSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const imgUrl = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    shortsBgImage = img;
+                    const preview = document.getElementById('shortsAudioBgPreview');
+                    preview.src = imgUrl;
+                    preview.style.display = 'block';
+                    document.getElementById('shortsAudioBgPlaceholder').style.display = 'none';
+                };
+                img.src = imgUrl;
+            }
+        }
+
+        async function generateShortsIaBg() {
+            const promptInput = document.getElementById('shortsIaPromptInput');
+            const promptText = promptInput.value.trim();
+            if (!promptText) {
+                alert('Por favor escribe una descripción para generar la imagen celestial.');
+                return;
+            }
+
+            const genBtn = document.getElementById('btnGenerateShortsIaBg');
+            genBtn.disabled = true;
+            genBtn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Generando...`;
+            lucide.createIcons();
+
+            try {
+                const encodedPrompt = encodeURIComponent(promptText + ", 4K UHD celestial heaven rays of light holy divine worship christian");
+                const seed = Math.floor(Math.random() * 1000000);
+                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&nologo=true&seed=${seed}`;
+                
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => {
+                    shortsBgImage = img;
+                    const preview = document.getElementById('shortsAudioBgPreview');
+                    preview.src = url;
+                    preview.style.display = 'block';
+                    document.getElementById('shortsAudioBgPlaceholder').style.display = 'none';
+                    
+                    genBtn.disabled = false;
+                    genBtn.innerHTML = `Generar IA`;
+                    alert('¡Imagen celestial de fondo generada con éxito!');
+                    lucide.createIcons();
+                };
+                img.onerror = () => {
+                    genBtn.disabled = false;
+                    genBtn.innerHTML = `Generar IA`;
+                    alert('Error cargando la imagen generada por IA. Por favor intenta de nuevo.');
+                    lucide.createIcons();
+                };
+                img.src = url;
+            } catch(e) {
+                console.error(e);
+                genBtn.disabled = false;
+                genBtn.innerHTML = `Generar IA`;
+                lucide.createIcons();
+            }
+        }
+
+        async function startAudioShortRecording() {
+            const player = document.getElementById('shortsAudioPreviewPlayer');
+            if (!shortsAudioUrl) {
+                alert('Por favor carga primero un archivo de audio MP3.');
+                return;
+            }
+            if (!shortsBgImage) {
+                alert('Por favor selecciona o genera una imagen celestial de fondo.');
+                return;
+            }
+
+            const btn = document.getElementById('btnRecordUrlShort');
+            const progress = document.getElementById('urlShortRenderProgress');
+            progress.style.display = 'block';
+            progress.innerHTML = '📱 Generando Short desde MP3... Por favor espera.';
+            if (btn) btn.disabled = true;
+
+            const cutStart = parseFloat(document.getElementById('shortsCutStart').value) || 0;
+            const cutDuration = parseFloat(document.getElementById('shortsCutDuration').value) || 15;
+
+            // Setup 9:16 Canvas
+            const sCanvas = document.createElement('canvas');
+            sCanvas.width = 1080;
+            sCanvas.height = 1920;
+            const sCtx = sCanvas.getContext('2d');
+
+            const stream = sCanvas.captureStream(30);
+
+            // Audio Routing
+            let audioTracks = [];
+            try {
+                if (player.captureStream) {
+                    audioTracks = player.captureStream().getAudioTracks();
+                } else if (player.mozCaptureStream) {
+                    audioTracks = player.mozCaptureStream().getAudioTracks();
+                }
+            } catch (e) {
+                console.warn("Direct stream capture failed, trying Web Audio API...", e);
+            }
+
+            if (audioTracks.length > 0) {
+                audioTracks.forEach(track => stream.addTrack(track));
+            } else {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioCtx.createMediaElementSource(player);
+                    const audioStreamDest = audioCtx.createMediaStreamDestination();
+                    source.connect(audioStreamDest);
+                    source.connect(audioCtx.destination);
+                    audioStreamDest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+                } catch(e) {
+                    console.warn("AudioContext fallback routing active:", e);
+                }
+            }
+
+            const recordedChunks = [];
+            let mediaRecorder;
+            try {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 8000000 });
+            } catch (e) {
+                try {
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 8000000 });
+                } catch (e2) {
+                    try {
+                        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8000000 });
+                    } catch (e3) {
+                        mediaRecorder = new MediaRecorder(stream);
+                    }
+                }
+            }
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+            // Ir al segundo de inicio del audio y esperar seek
+            player.currentTime = cutStart;
+            await new Promise(resolve => {
+                const onSeeked = () => {
+                    player.removeEventListener('seeked', onSeeked);
+                    resolve();
+                };
+                player.addEventListener('seeked', onSeeked);
+                setTimeout(resolve, 1200); // Safety timeout
+            });
+
+            let startTime = null;
+            mediaRecorder.start();
+            try {
+                player.muted = false;
+                await player.play();
+            } catch (playErr) {
+                console.warn("Autoplay block, playing muted fallback:", playErr);
+                player.muted = true;
+                await player.play().catch(e => console.error("Could not play audio player:", e));
+            }
+
+            const textContent = document.getElementById('shortsAudioLyrics').value.trim();
+            const textLines = textContent.split('\n');
+            let animActive = true;
+
+            const drawFrame = () => {
+                if (!animActive) return;
+
+                // Fondo oscuro
+                sCtx.fillStyle = '#09090b';
+                sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+
+                if (startTime === null) {
+                    startTime = Date.now();
+                }
+                const elapsedRealTime = (Date.now() - startTime) / 1000;
+
+                // Zoom Ken Burns Effect on Background Image
+                if (shortsBgImage && shortsBgImage.complete) {
+                    sCtx.save();
+                    const progressRatio = Math.min(1.0, elapsedRealTime / cutDuration);
+                    const scale = 1.0 + 0.08 * progressRatio;
+                    
+                    sCtx.translate(sCanvas.width / 2, sCanvas.height / 2);
+                    sCtx.scale(scale, scale);
+                    sCtx.translate(-sCanvas.width / 2, -sCanvas.height / 2);
+                    
+                    sCtx.drawImage(shortsBgImage, (sCanvas.width - sCanvas.height * (shortsBgImage.naturalWidth / shortsBgImage.naturalHeight)) / 2, 0, sCanvas.height * (shortsBgImage.naturalWidth / shortsBgImage.naturalHeight), sCanvas.height);
+                    sCtx.restore();
+
+                    // Overlay dark gradient
+                    const grad = sCtx.createLinearGradient(0, 0, 0, sCanvas.height);
+                    grad.addColorStop(0, 'rgba(0,0,0,0.4)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.85)');
+                    sCtx.fillStyle = grad;
+                    sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+                }
+
+                // Celestial gold particles
+                drawParticles(sCtx, sCanvas.width, sCanvas.height);
+
+                // Draw Watermark
+                if (watermarkImg.complete && watermarkImg.naturalWidth !== 0) {
+                    sCtx.save();
+                    sCtx.globalAlpha = 0.9;
+                    sCtx.drawImage(watermarkImg, (sCanvas.width - 440)/2, 140, 440, 115);
+                    sCtx.restore();
+                }
+
+                // Draw Text with auto-shrink
+                if (textContent) {
+                    sCtx.textAlign = 'center';
+                    sCtx.textBaseline = 'middle';
+                    
+                    let baseFontSize = 72;
+                    let currentSize = baseFontSize;
+                    sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                    const maxAllowedWidth = sCanvas.width - 140;
+                    
+                    let maxLineWidth = 0;
+                    textLines.forEach(line => {
+                        const w = sCtx.measureText(line).width;
+                        if (w > maxLineWidth) maxLineWidth = w;
+                    });
+                    
+                    if (maxLineWidth > maxAllowedWidth) {
+                        currentSize = Math.floor(baseFontSize * (maxAllowedWidth / maxLineWidth));
+                        currentSize = Math.max(42, currentSize);
+                        sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                    }
+
+                    const lineHeight = currentSize * 1.35;
+                    const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
+                    textLines.forEach((line, idx) => {
+                        const y = startY + (idx * lineHeight);
+                        
+                        sCtx.shadowColor = '#f59e0b';
+                        sCtx.shadowBlur = 30;
+                        sCtx.fillStyle = '#ffffff';
+                        sCtx.fillText(line, sCanvas.width / 2, y);
+                        
+                        sCtx.shadowBlur = 0;
+                        sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
+                        sCtx.lineWidth = 8;
+                        sCtx.strokeText(line, sCanvas.width / 2, y);
+                    });
+                }
+
+                // Stop conditions
+                if (elapsedRealTime >= cutDuration || player.ended || (player.currentTime >= (cutStart + cutDuration))) {
+                    animActive = false;
+                    if (mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                } else {
+                    requestAnimationFrame(drawFrame);
+                }
+            };
+
+            drawFrame();
+
+            mediaRecorder.onstop = () => {
+                player.pause();
+                animActive = false;
+                
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                state.lastShortVideoBlob = blob; // Guardar globalmente para subida directa
+
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = `mp3_short_${Date.now()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                progress.innerHTML = `<span style="color:var(--success);">¡Short de 9:16 generado y descargado con éxito! Ya puedes publicarlo a YouTube abajo.</span>`;
+                if (btn) btn.disabled = false;
+            };
         }
 
         // YouTube / MP4 video to Short (9:16) crop tools
