@@ -1736,6 +1736,24 @@ ${rawText}`;
                 }
             }
 
+            // Si el introOffset es mayor a 0.5, insertamos una diapositiva instrumental inicial para la música de comienzo
+            if (introOffset > 0.5) {
+                // Desplazar los IDs de las estrofas reales
+                calculatedSegments.forEach(seg => {
+                    seg.id += 1;
+                });
+                
+                // Prepend del segmento de Introducción
+                calculatedSegments.unshift({
+                    id: 1,
+                    text: "[Introducción Instrumental / Música de Inicio]",
+                    startTime: 0,
+                    endTime: introOffset,
+                    prompt: "peaceful holy cross in heaven, golden rays of light, christian worship, 4k uhd sacred christian art style, detailed cinematic scenery",
+                    imageUrl: null
+                });
+            }
+
             state.segments = calculatedSegments;
             renderSegments();
         }
@@ -2017,8 +2035,8 @@ ${rawText}`;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // Draw Subtitles Lyrics (4K proportions)
-            if (seg && seg.text) {
+             // Draw Subtitles Lyrics (4K proportions)
+            if (seg && seg.text && !seg.text.trim().startsWith('[') && !seg.text.trim().endsWith(']')) {
                 const textLines = seg.text.split('\n');
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -2156,7 +2174,31 @@ ${rawText}`;
                 if (e.data.size > 0) state.recordedChunks.push(e.data);
             };
 
+            // Setup Background Web Worker to prevent tab throttling
+            const workerCode = `
+                let timer = null;
+                self.onmessage = function(e) {
+                    if (e.data === 'start') {
+                        if (timer) clearInterval(timer);
+                        timer = setInterval(() => {
+                            self.postMessage('tick');
+                        }, 33.33); // 30 FPS
+                    } else if (e.data === 'stop') {
+                        if (timer) {
+                            clearInterval(timer);
+                            timer = null;
+                        }
+                    }
+                };
+            `;
+            const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(workerBlob);
+            const recordingWorker = new Worker(workerUrl);
+
             state.mediaRecorder.onstop = () => {
+                recordingWorker.postMessage('stop');
+                recordingWorker.terminate();
+
                 player.playbackRate = 1.0; // Reset normal speed
                 const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
                 state.lastVideoBlobUrl = URL.createObjectURL(blob);
@@ -2168,6 +2210,7 @@ ${rawText}`;
                 a.download = state.lastVideoBlobName;
                 document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
 
                 document.getElementById('renderProgress').style.display = 'none';
                 const btnD = document.getElementById('btnDownloadStep4');
@@ -2179,7 +2222,18 @@ ${rawText}`;
             document.getElementById('renderProgress').style.display = 'block';
             state.mediaRecorder.start();
             player.play();
-            renderLoop();
+
+            recordingWorker.onmessage = (e) => {
+                if (e.data === 'tick') {
+                    drawCanvasFrame(player.currentTime);
+                    const progressBox = document.getElementById('renderProgress');
+                    if (progressBox && progressBox.style.display !== 'none' && player.duration > 0) {
+                        const pct = Math.min(100, Math.round((player.currentTime / player.duration) * 100));
+                        progressBox.innerHTML = `🚀 Procesando video 4K UHD (${pct}%)... Por favor espera unos segundos.`;
+                    }
+                }
+            };
+            recordingWorker.postMessage('start');
 
             player.onended = () => {
                 player.playbackRate = 1.0;
@@ -2921,13 +2975,32 @@ ${rawText}`;
 
             mediaRecorder.start();
 
+            // Setup Background Web Worker to prevent tab throttling
+            const workerCode = `
+                let timer = null;
+                self.onmessage = function(e) {
+                    if (e.data === 'start') {
+                        if (timer) clearInterval(timer);
+                        timer = setInterval(() => {
+                            self.postMessage('tick');
+                        }, 33.33); // 30 FPS
+                    } else if (e.data === 'stop') {
+                        if (timer) {
+                            clearInterval(timer);
+                            timer = null;
+                        }
+                    }
+                };
+            `;
+            const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(workerBlob);
+            const recordingWorker = new Worker(workerUrl);
+
             // Render loop animation background for compilation
-            let animActive = true;
             let currentImgIdx = 0;
             let lastSlideTime = Date.now();
 
             function drawCompFrame() {
-                if (!animActive) return;
                 const now = Date.now();
                 if (now - lastSlideTime > 25000 && state.compilationImages.length > 0) { // Change slide every 25s
                     currentImgIdx = (currentImgIdx + 1) % state.compilationImages.length;
@@ -2961,11 +3034,14 @@ ${rawText}`;
                 compCtx.strokeStyle = 'rgba(0,0,0,0.85)';
                 compCtx.lineWidth = 8;
                 compCtx.strokeText(mainTitle, compCanvas.width / 2, compCanvas.height / 2);
-
-                if (animActive) requestAnimationFrame(drawCompFrame);
             }
 
-            drawCompFrame();
+            recordingWorker.onmessage = (e) => {
+                if (e.data === 'tick') {
+                    drawCompFrame();
+                }
+            };
+            recordingWorker.postMessage('start');
 
             // Play tracks sequentially
             for (let i = 0; i < state.compilationTracks.length; i++) {
@@ -2988,7 +3064,8 @@ ${rawText}`;
                 accumulatedSecs += track.duration;
             }
 
-            animActive = false;
+            recordingWorker.postMessage('stop');
+            recordingWorker.terminate();
             mediaRecorder.stop();
 
             mediaRecorder.onstop = () => {
@@ -3129,9 +3206,28 @@ ${rawText}`;
                 await player.play().catch(e => console.error("Could not play video:", e));
             }
 
-            let animActive = true;
+            // Setup Background Web Worker to prevent tab throttling
+            const workerCode = `
+                let timer = null;
+                self.onmessage = function(e) {
+                    if (e.data === 'start') {
+                        if (timer) clearInterval(timer);
+                        timer = setInterval(() => {
+                            self.postMessage('tick');
+                        }, 33.33); // 30 FPS
+                    } else if (e.data === 'stop') {
+                        if (timer) {
+                            clearInterval(timer);
+                            timer = null;
+                        }
+                    }
+                };
+            `;
+            const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(workerBlob);
+            const recordingWorker = new Worker(workerUrl);
+
             function drawShortFrame() {
-                if (!animActive) return;
                 const curTime = player.currentTime;
                 let activeIndex = state.segments.findIndex(s => curTime >= s.startTime && curTime <= s.endTime);
                 if (activeIndex === -1 && state.segments.length > 0) activeIndex = 0;
@@ -3154,7 +3250,7 @@ ${rawText}`;
                 // Dibujar Partículas Celestiales en el Short para que se vea genial y profesional
                 drawParticles(sCtx, sCanvas.width, sCanvas.height);
 
-                if (seg && seg.text) {
+                if (seg && seg.text && !seg.text.trim().startsWith('[') && !seg.text.trim().endsWith(']')) {
                     const textLines = seg.text.split('\n');
                     sCtx.textAlign = 'center';
                     sCtx.textBaseline = 'middle';
@@ -3210,19 +3306,24 @@ ${rawText}`;
 
                 // Stop conditions
                 if (elapsedRealTime >= durationSec || player.ended || (player.currentTime >= (startSec + durationSec))) {
-                    animActive = false;
                     if (mediaRecorder.state !== 'inactive') {
                         mediaRecorder.stop();
                     }
-                } else {
-                    requestAnimationFrame(drawShortFrame);
                 }
             }
-            drawShortFrame();
+
+            recordingWorker.onmessage = (e) => {
+                if (e.data === 'tick') {
+                    drawShortFrame();
+                }
+            };
+            recordingWorker.postMessage('start');
 
             mediaRecorder.onstop = () => {
+                recordingWorker.postMessage('stop');
+                recordingWorker.terminate();
+
                 player.pause();
-                animActive = false;
                 
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 state.lastShortVideoBlob = blob; // Guardar globalmente
@@ -3568,7 +3669,7 @@ ${rawText}`;
                 }
 
                 // Draw Text with auto-shrink
-                if (textContent) {
+                if (textContent && !textContent.trim().startsWith('[') && !textContent.trim().endsWith(']')) {
                     sCtx.textAlign = 'center';
                     sCtx.textBaseline = 'middle';
                     
