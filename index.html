@@ -2036,50 +2036,55 @@ ${rawText}`;
             }
 
              // Draw Subtitles Lyrics (4K proportions)
-            if (seg && seg.text && !seg.text.trim().startsWith('[') && !seg.text.trim().endsWith(']')) {
-                const textLines = seg.text.split('\n');
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+            if (seg && seg.text) {
+                const textLines = seg.text.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0 && !(line.startsWith('[') && line.endsWith(']')));
 
-                // Determine maximum line width to see if we need to auto-shrink the font
-                let originalSize = parseInt(state.canvasStyle.fontSize);
-                let currentSize = originalSize;
-                ctx.font = `bold ${currentSize}px ${state.canvasStyle.fontFamily}`;
-                
-                const maxAllowedWidth = canvas.width - 260; // 130px safe area margin on each side
-                
-                let maxLineWidth = 0;
-                textLines.forEach(line => {
-                    const w = ctx.measureText(line).width;
-                    if (w > maxLineWidth) maxLineWidth = w;
-                });
-                
-                if (maxLineWidth > maxAllowedWidth) {
-                    // Reduce font size proportionally so it fits exactly
-                    currentSize = Math.floor(originalSize * (maxAllowedWidth / maxLineWidth));
-                    // Keep a sensible minimum font size
-                    currentSize = Math.max(50, currentSize);
+                if (textLines.length > 0) {
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    // Determine maximum line width to see if we need to auto-shrink the font
+                    let originalSize = parseInt(state.canvasStyle.fontSize);
+                    let currentSize = originalSize;
                     ctx.font = `bold ${currentSize}px ${state.canvasStyle.fontFamily}`;
+                    
+                    const maxAllowedWidth = canvas.width - 260; // 130px safe area margin on each side
+                    
+                    let maxLineWidth = 0;
+                    textLines.forEach(line => {
+                        const w = ctx.measureText(line).width;
+                        if (w > maxLineWidth) maxLineWidth = w;
+                    });
+                    
+                    if (maxLineWidth > maxAllowedWidth) {
+                        // Reduce font size proportionally so it fits exactly
+                        currentSize = Math.floor(originalSize * (maxAllowedWidth / maxLineWidth));
+                        // Keep a sensible minimum font size
+                        currentSize = Math.max(50, currentSize);
+                        ctx.font = `bold ${currentSize}px ${state.canvasStyle.fontFamily}`;
+                    }
+
+                    const lineHeight = currentSize * 1.35;
+                    const startY = (canvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
+
+                    textLines.forEach((line, idx) => {
+                        const y = startY + (idx * lineHeight);
+                        
+                        // Glow Effect
+                        ctx.shadowColor = state.canvasStyle.glowColor;
+                        ctx.shadowBlur = 45;
+                        ctx.fillStyle = state.canvasStyle.textColor;
+                        ctx.fillText(line, canvas.width / 2, y);
+                        
+                        // Reset shadow for stroke
+                        ctx.shadowBlur = 0;
+                        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+                        ctx.lineWidth = 8;
+                        ctx.strokeText(line, canvas.width / 2, y);
+                    });
                 }
-
-                const lineHeight = currentSize * 1.35;
-                const startY = (canvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
-
-                textLines.forEach((line, idx) => {
-                    const y = startY + (idx * lineHeight);
-                    
-                    // Glow Effect
-                    ctx.shadowColor = state.canvasStyle.glowColor;
-                    ctx.shadowBlur = 45;
-                    ctx.fillStyle = state.canvasStyle.textColor;
-                    ctx.fillText(line, canvas.width / 2, y);
-                    
-                    // Reset shadow for stroke
-                    ctx.shadowBlur = 0;
-                    ctx.strokeStyle = 'rgba(0,0,0,0.85)';
-                    ctx.lineWidth = 8;
-                    ctx.strokeText(line, canvas.width / 2, y);
-                });
             }
 
             // Draw Celestial Particles if enabled
@@ -3250,44 +3255,49 @@ ${rawText}`;
                 // Dibujar Partículas Celestiales en el Short para que se vea genial y profesional
                 drawParticles(sCtx, sCanvas.width, sCanvas.height);
 
-                if (seg && seg.text && !seg.text.trim().startsWith('[') && !seg.text.trim().endsWith(']')) {
-                    const textLines = seg.text.split('\n');
-                    sCtx.textAlign = 'center';
-                    sCtx.textBaseline = 'middle';
-                    
-                    // Auto-shrink dynamic font size for Short narrow width
-                    let baseFontSize = 72;
-                    let currentSize = baseFontSize;
-                    sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
-                    const maxAllowedWidth = sCanvas.width - 140; // 70px margins
-                    
-                    let maxLineWidth = 0;
-                    textLines.forEach(line => {
-                        const w = sCtx.measureText(line).width;
-                        if (w > maxLineWidth) maxLineWidth = w;
-                    });
-                    
-                    if (maxLineWidth > maxAllowedWidth) {
-                        currentSize = Math.floor(baseFontSize * (maxAllowedWidth / maxLineWidth));
-                        currentSize = Math.max(42, currentSize);
-                        sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
-                    }
+                if (seg && seg.text) {
+                    const textLines = seg.text.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0 && !(line.startsWith('[') && line.endsWith(']')));
 
-                    const lineHeight = currentSize * 1.35;
-                    const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
-                    textLines.forEach((line, idx) => {
-                        const y = startY + (idx * lineHeight);
+                    if (textLines.length > 0) {
+                        sCtx.textAlign = 'center';
+                        sCtx.textBaseline = 'middle';
                         
-                        sCtx.shadowColor = '#f59e0b';
-                        sCtx.shadowBlur = 30;
-                        sCtx.fillStyle = '#ffffff';
-                        sCtx.fillText(line, sCanvas.width / 2, y);
+                        // Auto-shrink dynamic font size for Short narrow width
+                        let baseFontSize = 72;
+                        let currentSize = baseFontSize;
+                        sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                        const maxAllowedWidth = sCanvas.width - 140; // 70px margins
                         
-                        sCtx.shadowBlur = 0;
-                        sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
-                        sCtx.lineWidth = 8;
-                        sCtx.strokeText(line, sCanvas.width / 2, y);
-                    });
+                        let maxLineWidth = 0;
+                        textLines.forEach(line => {
+                            const w = sCtx.measureText(line).width;
+                            if (w > maxLineWidth) maxLineWidth = w;
+                        });
+                        
+                        if (maxLineWidth > maxAllowedWidth) {
+                            currentSize = Math.floor(baseFontSize * (maxAllowedWidth / maxLineWidth));
+                            currentSize = Math.max(42, currentSize);
+                            sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                        }
+
+                        const lineHeight = currentSize * 1.35;
+                        const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
+                        textLines.forEach((line, idx) => {
+                            const y = startY + (idx * lineHeight);
+                            
+                            sCtx.shadowColor = '#f59e0b';
+                            sCtx.shadowBlur = 30;
+                            sCtx.fillStyle = '#ffffff';
+                            sCtx.fillText(line, sCanvas.width / 2, y);
+                            
+                            sCtx.shadowBlur = 0;
+                            sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
+                            sCtx.lineWidth = 8;
+                            sCtx.strokeText(line, sCanvas.width / 2, y);
+                        });
+                    }
                 }
 
                 // Draw Watermark on Shorts
