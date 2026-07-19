@@ -1569,9 +1569,7 @@
                 return;
             }
             goToStep(2);
-            if (state.segments.length === 0) {
-                autoSegmentLyrics();
-            }
+            autoSegmentLyrics();
         }
 
         function generateLocalPromptForText(text) {
@@ -1840,16 +1838,16 @@ ${rawText}`;
                 } else {
                     // Default Free Engine: Pollinations.ai (High Quality 4K UHD)
                     const promptText = seg.prompt || "Sacred Christian worship art, dramatic heavenly clouds, rays of light";
-                    const cleanPrompt = promptText.replace(/[^a-zA-Z0-9 ,.-]/g, '');
-                    const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
+                    const encodedPrompt = encodeURIComponent(promptText.trim() + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
                     const seed = Math.floor(Math.random() * 100000);
                     rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1920&height=1080&nologo=true&seed=${seed}`;
                 }
 
                 if (rawUrl) {
-                    // Esperar precarga en elemento Image para asegurar su disponibilidad con un límite de tiempo de 8s
+                    // Esperar precarga con CORS para asegurar consistencia con el Canvas
                     await new Promise((resolve) => {
                         const img = new Image();
+                        img.crossOrigin = "anonymous";
                         const timer = setTimeout(() => {
                             resolve();
                         }, 8000);
@@ -1864,7 +1862,7 @@ ${rawText}`;
                         img.src = rawUrl;
                     });
                     seg.imageUrl = rawUrl;
-                    prevBox.innerHTML = `<img src="${rawUrl}">`;
+                    prevBox.innerHTML = `<img src="${rawUrl}" crossorigin="anonymous">`;
                 } else {
                     prevBox.innerHTML = `<i data-lucide="alert-circle" style="color:var(--danger);"></i>`;
                     lucide.createIcons();
