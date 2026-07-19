@@ -1847,7 +1847,7 @@ ${rawText}`;
                                                   .trim();
                     const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
                     const seed = Math.floor(Math.random() * 100000);
-                    rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1920&height=1080&nologo=true&seed=${seed}`;
+                    rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=576&nologo=true&seed=${seed}`;
                 }
 
                 if (rawUrl) {
@@ -2949,12 +2949,15 @@ ${rawText}`;
             }
 
             const promptText = document.getElementById('compPromptInput')?.value || 'Sacred Christian prayer aesthetic, peaceful mountains at sunset, glowing golden cross, bible open on wooden table, heavenly rays of light, 4K UHD';
-            const cleanPrompt = promptText.replace(/[^a-zA-Z0-9 ,.-]/g, '');
+            const cleanPrompt = promptText.normalize("NFD")
+                                          .replace(/[\u0300-\u036f]/g, "") // Remueve acentos
+                                          .replace(/[^a-zA-Z0-9 ,.-]/g, "") // Remueve especiales
+                                          .trim();
 
             state.compilationImages = [];
             const promises = Array.from({ length: 6 }).map(() => {
                 const seed = Math.floor(Math.random() * 100000);
-                const rawUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1920&height=1080&nologo=true&seed=${seed}`;
+                const rawUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=576&nologo=true&seed=${seed}`;
                 return new Promise((resolve) => {
                     const img = new Image();
                     img.crossOrigin = "anonymous";
@@ -3614,7 +3617,7 @@ ${rawText}`;
                                               .trim();
                 const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD celestial heaven rays of light holy divine worship christian");
                 const seed = Math.floor(Math.random() * 1000000);
-                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&nologo=true&seed=${seed}`;
+                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=576&height=1024&nologo=true&seed=${seed}`;
                 
                 const img = new Image();
                 img.crossOrigin = "anonymous";
