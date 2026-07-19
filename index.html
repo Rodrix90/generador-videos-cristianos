@@ -769,7 +769,10 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <div>
                     <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">Segmentación y Prompts de Imágenes IA</h2>
-                    <p style="color: var(--text-muted);">Ajusta los tiempos exactos de cada estrofa para sincronizarlos perfectamente con el audio.</p>
+                    <p style="color: var(--text-muted); margin-bottom: 0.4rem;">Ajusta los tiempos exactos de cada estrofa para sincronizarlos perfectamente con el audio.</p>
+                    <p style="color: #f59e0b; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin: 0;">
+                        ⚠️ Si las imágenes aparecen rotas, desactiva los "Escudos de Brave" (Shields) o tu bloqueador de anuncios para esta web.
+                    </p>
                 </div>
                 <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
                     <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(0,0,0,0.2); padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
@@ -1838,7 +1841,11 @@ ${rawText}`;
                 } else {
                     // Default Free Engine: Pollinations.ai (High Quality 4K UHD)
                     const promptText = seg.prompt || "Sacred Christian worship art, dramatic heavenly clouds, rays of light";
-                    const encodedPrompt = encodeURIComponent(promptText.trim() + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
+                    const cleanPrompt = promptText.normalize("NFD")
+                                                  .replace(/[\u0300-\u036f]/g, "") // Remueve acentos
+                                                  .replace(/[^a-zA-Z0-9 ,.-]/g, "") // Remueve especiales
+                                                  .trim();
+                    const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
                     const seed = Math.floor(Math.random() * 100000);
                     rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1920&height=1080&nologo=true&seed=${seed}`;
                 }
@@ -3601,7 +3608,11 @@ ${rawText}`;
             lucide.createIcons();
 
             try {
-                const encodedPrompt = encodeURIComponent(promptText + ", 4K UHD celestial heaven rays of light holy divine worship christian");
+                const cleanPrompt = promptText.normalize("NFD")
+                                              .replace(/[\u0300-\u036f]/g, "") // Remueve acentos
+                                              .replace(/[^a-zA-Z0-9 ,.-]/g, "") // Remueve especiales
+                                              .trim();
+                const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD celestial heaven rays of light holy divine worship christian");
                 const seed = Math.floor(Math.random() * 1000000);
                 const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&nologo=true&seed=${seed}`;
                 
