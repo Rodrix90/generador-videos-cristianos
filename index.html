@@ -792,6 +792,9 @@
                     <button class="btn btn-primary btn-sm" onclick="generateAllImages()">
                         <i data-lucide="image"></i> Generar Todas las Imágenes
                     </button>
+                    <button class="btn btn-secondary btn-sm" onclick="runDiagnostics()" id="btnDiagnostics" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
+                        <i data-lucide="activity"></i> Diagnóstico de Conexión IA
+                    </button>
                 </div>
             </div>
 
@@ -1913,6 +1916,51 @@ ${rawText}`;
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="image"></i> Generar Todas las Imágenes`;
                 lucide.createIcons();
+            }
+        async function runDiagnostics() {
+            const btn = document.getElementById('btnDiagnostics');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Diagnosticando...`;
+                lucide.createIcons();
+            }
+            
+            try {
+                const start = Date.now();
+                const testUrl = "https://image.pollinations.ai/prompt/heavenly%20light%20christian%20cross?width=100&height=100&seed=123";
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                
+                const success = await new Promise((resolve) => {
+                    const timer = setTimeout(() => {
+                        resolve(false);
+                    }, 5000);
+                    img.onload = () => {
+                        clearTimeout(timer);
+                        resolve(true);
+                    };
+                    img.onerror = () => {
+                        clearTimeout(timer);
+                        resolve(false);
+                    };
+                    img.src = testUrl;
+                });
+                
+                const duration = ((Date.now() - start) / 1000).toFixed(1);
+                
+                if (success) {
+                    alert(`✅ ¡Conexión Exitosa con la IA! (${duration}s)\nEl servidor de imágenes responde de forma correcta en tu navegador.\n\nSi aún ves fotos rotas al generar, haz clic en "Recalcular Tiempos" o vuelve a pegar tu letra en el Paso 1 para que la aplicación cree de nuevo los enlaces.`);
+                } else {
+                    alert(`❌ Conexión con la IA Bloqueada o Caída.\n\nEl servidor de imágenes ("pollinations.ai") no respondió a la prueba.\n\nCausas más comunes:\n1. Tienes activo un bloqueador de anuncios (ej. AdBlock, uBlock Origin) que está bloqueando el dominio.\n2. Si estás en Brave, haz clic en el león naranja arriba y apaga los "Escudos de Brave".\n3. Tu proveedor de internet o router tiene bloqueada la dirección por control parental o firewall.`);
+                }
+            } catch (err) {
+                alert("Error durante el diagnóstico: " + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i data-lucide="activity"></i> Diagnóstico de Conexión IA`;
+                    lucide.createIcons();
+                }
             }
         }
 
