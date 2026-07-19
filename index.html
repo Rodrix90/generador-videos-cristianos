@@ -3270,11 +3270,12 @@ ${rawText}`;
 
                 if (img && img.complete && img.naturalWidth !== 0) {
                     sCtx.drawImage(img, (sCanvas.width - sCanvas.height * (img.naturalWidth/img.naturalHeight))/2, 0, sCanvas.height * (img.naturalWidth/img.naturalHeight), sCanvas.height);
-                    const grad = sCtx.createLinearGradient(0, 0, 0, sCanvas.height);
-                    grad.addColorStop(0, 'rgba(0,0,0,0.4)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.8)');
+                    // Overlay dark gradient only in the lower third for text readability
+                    const grad = sCtx.createLinearGradient(0, sCanvas.height * 0.6, 0, sCanvas.height);
+                    grad.addColorStop(0, 'rgba(0,0,0,0)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.65)');
                     sCtx.fillStyle = grad;
-                    sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+                    sCtx.fillRect(0, sCanvas.height * 0.6, sCanvas.width, sCanvas.height * 0.4);
                 }
 
                 // Dibujar Partículas Celestiales en el Short para que se vea genial y profesional
@@ -3308,7 +3309,7 @@ ${rawText}`;
                         }
 
                         const lineHeight = currentSize * 1.35;
-                        const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
+                        const startY = (sCanvas.height * 0.72) - ((textLines.length - 1) * lineHeight / 2);
                         textLines.forEach((line, idx) => {
                             const y = startY + (idx * lineHeight);
                             const isInstrumental = line.startsWith('♫');
@@ -3328,7 +3329,7 @@ ${rawText}`;
                             
                             sCtx.shadowBlur = 0;
                             sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
-                            sCtx.lineWidth = 8;
+                            sCtx.lineWidth = 12; // Outline grueso
                             sCtx.strokeText(line, sCanvas.width / 2, y);
                             sCtx.restore();
                         });
@@ -3722,12 +3723,12 @@ ${rawText}`;
                     sCtx.drawImage(shortsBgImage, (sCanvas.width - sCanvas.height * (shortsBgImage.naturalWidth / shortsBgImage.naturalHeight)) / 2, 0, sCanvas.height * (shortsBgImage.naturalWidth / shortsBgImage.naturalHeight), sCanvas.height);
                     sCtx.restore();
 
-                    // Overlay dark gradient
-                    const grad = sCtx.createLinearGradient(0, 0, 0, sCanvas.height);
-                    grad.addColorStop(0, 'rgba(0,0,0,0.4)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.85)');
+                    // Overlay dark gradient only in the lower third for text readability
+                    const grad = sCtx.createLinearGradient(0, sCanvas.height * 0.6, 0, sCanvas.height);
+                    grad.addColorStop(0, 'rgba(0,0,0,0)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.65)');
                     sCtx.fillStyle = grad;
-                    sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+                    sCtx.fillRect(0, sCanvas.height * 0.6, sCanvas.width, sCanvas.height * 0.4);
                 }
 
                 // Celestial gold particles
@@ -3742,42 +3743,58 @@ ${rawText}`;
                 }
 
                 // Draw Text with auto-shrink
-                if (textContent && !textContent.trim().startsWith('[') && !textContent.trim().endsWith(']')) {
-                    sCtx.textAlign = 'center';
-                    sCtx.textBaseline = 'middle';
-                    
-                    let baseFontSize = 72;
-                    let currentSize = baseFontSize;
-                    sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
-                    const maxAllowedWidth = sCanvas.width - 140;
-                    
-                    let maxLineWidth = 0;
-                    textLines.forEach(line => {
-                        const w = sCtx.measureText(line).width;
-                        if (w > maxLineWidth) maxLineWidth = w;
-                    });
-                    
-                    if (maxLineWidth > maxAllowedWidth) {
-                        currentSize = Math.floor(baseFontSize * (maxAllowedWidth / maxLineWidth));
-                        currentSize = Math.max(42, currentSize);
-                        sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
-                    }
+                if (textContent) {
+                    const textLines = textContent.split('\n')
+                        .map(line => formatLyricsLine(line))
+                        .filter(line => line && line.length > 0);
 
-                    const lineHeight = currentSize * 1.35;
-                    const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
-                    textLines.forEach((line, idx) => {
-                        const y = startY + (idx * lineHeight);
+                    if (textLines.length > 0) {
+                        sCtx.textAlign = 'center';
+                        sCtx.textBaseline = 'middle';
                         
-                        sCtx.shadowColor = '#f59e0b';
-                        sCtx.shadowBlur = 30;
-                        sCtx.fillStyle = '#ffffff';
-                        sCtx.fillText(line, sCanvas.width / 2, y);
+                        let baseFontSize = 72;
+                        let currentSize = baseFontSize;
+                        sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                        const maxAllowedWidth = sCanvas.width - 140;
                         
-                        sCtx.shadowBlur = 0;
-                        sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
-                        sCtx.lineWidth = 8;
-                        sCtx.strokeText(line, sCanvas.width / 2, y);
-                    });
+                        let maxLineWidth = 0;
+                        textLines.forEach(line => {
+                            const w = sCtx.measureText(line).width;
+                            if (w > maxLineWidth) maxLineWidth = w;
+                        });
+                        
+                        if (maxLineWidth > maxAllowedWidth) {
+                            currentSize = Math.floor(baseFontSize * (maxAllowedWidth / maxLineWidth));
+                            currentSize = Math.max(42, currentSize);
+                            sCtx.font = `bold ${currentSize}px 'Montserrat', sans-serif`;
+                        }
+
+                        const lineHeight = currentSize * 1.35;
+                        const startY = (sCanvas.height * 0.72) - ((textLines.length - 1) * lineHeight / 2);
+                        textLines.forEach((line, idx) => {
+                            const y = startY + (idx * lineHeight);
+                            const isInstrumental = line.startsWith('♫');
+                            
+                            sCtx.save();
+                            if (isInstrumental) {
+                                sCtx.font = `italic bold ${Math.round(currentSize * 0.85)}px 'Montserrat', sans-serif`;
+                                sCtx.shadowColor = 'rgba(0,0,0,0.5)';
+                                sCtx.shadowBlur = 15;
+                                sCtx.fillStyle = '#f59e0b';
+                            } else {
+                                sCtx.shadowColor = '#f59e0b';
+                                sCtx.shadowBlur = 30;
+                                sCtx.fillStyle = '#ffffff';
+                            }
+                            sCtx.fillText(line, sCanvas.width / 2, y);
+                            
+                            sCtx.shadowBlur = 0;
+                            sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
+                            sCtx.lineWidth = 12; // Outline grueso
+                            sCtx.strokeText(line, sCanvas.width / 2, y);
+                            sCtx.restore();
+                        });
+                    }
                 }
 
                 // Stop conditions
