@@ -1839,18 +1839,28 @@ ${rawText}`;
                     }
                 } else {
                     // Default Free Engine: Pollinations.ai (High Quality 4K UHD)
-                    const cleanPrompt = seg.prompt.replace(/[^a-zA-Z0-9 ,.-]/g, '');
+                    const promptText = seg.prompt || "Sacred Christian worship art, dramatic heavenly clouds, rays of light";
+                    const cleanPrompt = promptText.replace(/[^a-zA-Z0-9 ,.-]/g, '');
                     const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
                     const seed = Math.floor(Math.random() * 100000);
                     rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1920&height=1080&nologo=true&seed=${seed}`;
                 }
 
                 if (rawUrl) {
-                    // Esperar precarga en elemento Image para asegurar su disponibilidad
+                    // Esperar precarga en elemento Image para asegurar su disponibilidad con un límite de tiempo de 8s
                     await new Promise((resolve) => {
                         const img = new Image();
-                        img.onload = () => resolve();
-                        img.onerror = () => resolve(); // Continuar aunque falle la precarga directa
+                        const timer = setTimeout(() => {
+                            resolve();
+                        }, 8000);
+                        img.onload = () => {
+                            clearTimeout(timer);
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            clearTimeout(timer);
+                            resolve();
+                        };
                         img.src = rawUrl;
                     });
                     seg.imageUrl = rawUrl;
@@ -1867,6 +1877,15 @@ ${rawText}`;
         }
 
         async function generateAllImages() {
+            if (!state.segments || state.segments.length === 0) {
+                if (state.lyrics && state.lyrics.trim().length > 0) {
+                    await autoSegmentLyrics();
+                } else {
+                    alert('Por favor, primero ingresa la letra y el audio en el Paso 1.');
+                    return;
+                }
+            }
+
             const btn = document.querySelector("button[onclick='generateAllImages()']");
             if (btn) {
                 btn.disabled = true;
