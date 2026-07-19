@@ -644,7 +644,7 @@
             <i data-lucide="disc"></i> 🕊️ Compilación de Oración (Multi-MP3 1 Hora+)
         </button>
         <button class="top-tab-btn" id="tabBtnShorts" onclick="switchMainMode('shorts')">
-            <i data-lucide="smartphone"></i> 📱 Video de YouTube a Short (9:16)
+            <i data-lucide="smartphone"></i> 📱 Creador de Shorts (9:16)
         </button>
     </div>
 
@@ -1202,94 +1202,56 @@
     <!-- Main Content for YouTube to Short Tab -->
     <main id="mainShortsMode" style="display: none;">
         <section class="view-content active" style="display: block;">
-            <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">📱 Creador Profesional de Shorts (9:16)</h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Elige entre recortar un video de YouTube/MP4, o subir un audio MP3 y generar un Short celestial con inteligencia artificial.</p>
-
-            <!-- Selector de Origen de Short -->
-            <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
-                <button class="btn btn-secondary btn-sm active" id="btnShortModeVideo" onclick="toggleShortsSubMode('video')" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
-                    <i data-lucide="video"></i> Cortar Video (MP4 / YouTube)
-                </button>
-                <button class="btn btn-secondary btn-sm" id="btnShortModeAudio" onclick="toggleShortsSubMode('audio')" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
-                    <i data-lucide="music"></i> Crear desde MP3 + Imagen Celestial
-                </button>
-            </div>
+            <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">📱 Creador de Shorts Celestiales (9:16)</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Sube tu audio MP3, escribe el texto de la pantalla, genera un fondo celestial y publica tu Short de 15 segundos directo a YouTube.</p>
 
             <div class="step1-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem;">
                 <!-- Left panel wrapper -->
                 <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <!-- Video Source Panel -->
-                    <div id="shortsVideoSourceGroup" style="display: flex; flex-direction: column; gap: 1.5rem;">
-                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
-                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
-                                <i data-lucide="link"></i> Enlace del Video
-                            </h3>
-                            <div class="form-group" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                <input type="text" id="ytVideoUrlInput" placeholder="https://www.youtube.com/watch?v=... o archivo local MP4" style="flex: 1;">
-                                <button class="btn btn-primary btn-sm" onclick="loadYoutubeShortVideo()">Cargar</button>
-                            </div>
-                            <p style="font-size: 0.75rem; color: var(--text-muted);">Puedes ingresar enlaces directos de video o seleccionar un archivo de video local si lo tienes descargado.</p>
-                            
-                            <div class="form-group" style="margin-top: 1rem;">
-                                <label style="font-size: 0.8rem; margin: 0;">O Cargar Video Local (.mp4/.webm):</label>
-                                <input type="file" accept="video/*" onchange="handleLocalShortVideoSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
-                            </div>
+                    <!-- Audio Source Panel -->
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="music"></i> 1. Cargar Audio MP3
+                        </h3>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.8rem; margin: 0;">Seleccionar archivo de audio (.mp3/.wav):</label>
+                            <input type="file" accept="audio/*" id="shortsAudioFileInput" onchange="handleShortsAudioSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
+                            <audio id="shortsAudioPreviewPlayer" controls style="width: 100%; margin-top: 0.75rem; display: none;"></audio>
                         </div>
+                    </div>
 
-                        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; align-items: center;">
-                            <span style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Vista Previa de Corte</span>
-                            <div style="width: 270px; height: 480px; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--accent); position: relative;">
-                                <video id="shortsPreviewVideo" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="align-left"></i> 2. Letra / Texto del Short
+                        </h3>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="font-size: 0.8rem; margin: 0;">Escribe la letra o frase que se mostrará en el Short:</label>
+                            <textarea id="shortsAudioLyrics" placeholder="Escribe aquí el texto que saldrá en la pantalla..." style="min-height: 80px; font-size: 0.85rem; margin-top: 0.5rem; width: 100%; background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="image"></i> 3. Fondo de Imagen Celestial
+                        </h3>
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label style="font-size: 0.8rem; margin: 0;">Cargar Imagen Local:</label>
+                            <input type="file" accept="image/*" id="shortsBgImageInput" onchange="handleShortsBgImageSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
+                        </div>
+                        <div style="border-top: 1px dashed var(--border); padding-top: 0.75rem; margin-top: 0.75rem;">
+                            <label style="font-size: 0.8rem; margin: 0;">O Generar con Inteligencia Artificial:</label>
+                            <div class="form-group" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 0;">
+                                <input type="text" id="shortsIaPromptInput" placeholder="Ej: Rayos celestiales de luz divina atravesando nubes, 4k..." style="flex: 1; font-size: 0.8rem;">
+                                <button class="btn btn-secondary btn-sm" onclick="generateShortsIaBg()" id="btnGenerateShortsIaBg">Generar IA</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Audio Source Panel (New!) -->
-                    <div id="shortsAudioSourceGroup" style="display: none; flex-direction: column; gap: 1.5rem;">
-                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
-                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
-                                <i data-lucide="music"></i> Cargar Audio MP3
-                            </h3>
-                            <div class="form-group" style="margin: 0;">
-                                <label style="font-size: 0.8rem; margin: 0;">Seleccionar archivo de audio (.mp3/.wav):</label>
-                                <input type="file" accept="audio/*" id="shortsAudioFileInput" onchange="handleShortsAudioSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
-                                <audio id="shortsAudioPreviewPlayer" controls style="width: 100%; margin-top: 0.75rem; display: none;"></audio>
-                            </div>
-                        </div>
-
-                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
-                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
-                                <i data-lucide="align-left"></i> Letra / Texto del Short
-                            </h3>
-                            <div class="form-group" style="margin: 0;">
-                                <label style="font-size: 0.8rem; margin: 0;">Escribe la letra o frase que se mostrará en el Short:</label>
-                                <textarea id="shortsAudioLyrics" placeholder="Escribe aquí el texto que saldrá en la pantalla..." style="min-height: 80px; font-size: 0.85rem; margin-top: 0.5rem; width: 100%; background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem;"></textarea>
-                            </div>
-                        </div>
-
-                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
-                            <h3 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
-                                <i data-lucide="image"></i> Fondo de Imagen Celestial
-                            </h3>
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label style="font-size: 0.8rem; margin: 0;">Cargar Imagen Local:</label>
-                                <input type="file" accept="image/*" id="shortsBgImageInput" onchange="handleShortsBgImageSelect(event)" style="background: none; border: none; padding: 0; margin-top: 0.5rem;">
-                            </div>
-                            <div style="border-top: 1px dashed var(--border); padding-top: 0.75rem; margin-top: 0.75rem;">
-                                <label style="font-size: 0.8rem; margin: 0;">O Generar con Inteligencia Artificial:</label>
-                                <div class="form-group" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 0;">
-                                    <input type="text" id="shortsIaPromptInput" placeholder="Ej: Rayos celestiales de luz divina atravesando nubes, 4k..." style="flex: 1; font-size: 0.8rem;">
-                                    <button class="btn btn-secondary btn-sm" onclick="generateShortsIaBg()" id="btnGenerateShortsIaBg">Generar IA</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; align-items: center;">
-                            <span style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Previsualización de Imagen</span>
-                            <div style="width: 270px; height: 480px; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--accent); position: relative;">
-                                <img id="shortsAudioBgPreview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                                <div id="shortsAudioBgPlaceholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem;">Sin imagen de fondo</div>
-                            </div>
+                    <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Previsualización de Imagen</span>
+                        <div style="width: 270px; height: 480px; background: #000; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--accent); position: relative;">
+                            <img id="shortsAudioBgPreview" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                            <div id="shortsAudioBgPlaceholder" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem;">Sin imagen de fondo</div>
                         </div>
                     </div>
                 </div>
@@ -1297,13 +1259,14 @@
                 <!-- Right panel: Controls and Metadata generation -->
                 <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; gap: 1.25rem;">
                     <h3 style="font-size: 1.05rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-                        <i data-lucide="scissors"></i> Parámetros del Short
+                        <i data-lucide="sliders"></i> Parámetros del Short
                     </h3>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div class="form-group">
-                            <label style="font-size: 0.85rem;">Inicio de Clip (seg):</label>
-                            <input type="number" id="shortsCutStart" value="10" step="1" style="width: 100%;">
+                            <label style="font-size: 0.85rem;">Inicio de Audio (seg):</label>
+                            <input type="number" id="shortsCutStart" value="0" step="1" style="width: 100%;">
+                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">Ej: 90 para iniciar en 1:30</span>
                         </div>
                         <div class="form-group">
                             <label style="font-size: 0.85rem;">Duración (seg):</label>
@@ -1315,21 +1278,12 @@
                             </select>
                         </div>
                     </div>
-                    
-                    <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
-                        <label style="font-size: 0.85rem;">📐 Formato de Encuadre</label>
-                        <select id="shortsFramingSelect" style="width: 100%;">
-                            <option value="crop" selected>✂️ Recorte Central (9:16 Completo)</option>
-                            <option value="blur">✨ Fondo Difuminado (Estilo Premium)</option>
-                            <option value="fit">⬛ Ajustar Completo (con Barras Negras)</option>
-                        </select>
-                    </div>
 
-                    <button class="btn btn-accent" onclick="startUrlShortRecording()" id="btnRecordUrlShort" style="margin-top: 0.5rem;">
-                        <i data-lucide="video"></i> Generar Video Short (9:16 Vertical)
+                    <button class="btn btn-accent" onclick="startAudioShortRecording()" id="btnRecordUrlShort" style="margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i data-lucide="sparkles"></i> Generar Video Short (9:16 Vertical)
                     </button>
                     <div id="urlShortRenderProgress" style="text-align: center; font-weight: 600; color: var(--accent); display: none; font-size: 0.85rem;">
-                        Procesando y reencuadrando video vertical... Por favor espera.
+                        Generando Short vertical desde MP3... Por favor espera.
                     </div>
 
                     <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem;">
