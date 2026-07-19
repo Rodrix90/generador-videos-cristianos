@@ -1930,7 +1930,20 @@ ${rawText}`;
 
             // Find Active Segment based on currentTime
             let activeIndex = state.segments.findIndex(s => currentTime >= s.startTime && currentTime <= s.endTime);
-            if (activeIndex === -1 && state.segments.length > 0) activeIndex = 0;
+            if (activeIndex === -1 && state.segments.length > 0) {
+                let closestIndex = 0;
+                let minDiff = Infinity;
+                state.segments.forEach((s, idx) => {
+                    if (currentTime >= s.endTime) {
+                        const diff = currentTime - s.endTime;
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            closestIndex = idx;
+                        }
+                    }
+                });
+                activeIndex = closestIndex;
+            }
 
             const seg = state.segments[activeIndex];
             const img = loadedImages[activeIndex];
@@ -3219,7 +3232,20 @@ ${rawText}`;
             function drawShortFrame() {
                 const curTime = player.currentTime;
                 let activeIndex = state.segments.findIndex(s => curTime >= s.startTime && curTime <= s.endTime);
-                if (activeIndex === -1 && state.segments.length > 0) activeIndex = 0;
+                if (activeIndex === -1 && state.segments.length > 0) {
+                    let closestIndex = 0;
+                    let minDiff = Infinity;
+                    state.segments.forEach((s, idx) => {
+                        if (curTime >= s.endTime) {
+                            const diff = curTime - s.endTime;
+                            if (diff < minDiff) {
+                                minDiff = diff;
+                                closestIndex = idx;
+                            }
+                        }
+                    });
+                    activeIndex = closestIndex;
+                }
 
                 const seg = state.segments[activeIndex];
                 const img = loadedImages[activeIndex];
