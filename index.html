@@ -2147,14 +2147,29 @@ ${rawText}`;
 
             const stream = canvas.captureStream(30); // 30 FPS
 
-            // Connect Audio to Stream via Web Audio API
+            // Connect Audio to Stream via Web Audio API using a shared cached Source/Context
             if (!state.audioCtx) {
                 state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                state.audioSource = state.audioCtx.createMediaElementSource(player);
             }
-            const dest = state.audioCtx.createMediaStreamDestination();
-            state.audioSource.connect(dest);
+            if (state.audioCtx.state === 'suspended') {
+                state.audioCtx.resume();
+            }
 
+            let source = player._audioSourceNode;
+            if (!source) {
+                source = state.audioCtx.createMediaElementSource(player);
+                player._audioSourceNode = source;
+                
+                const dest = state.audioCtx.createMediaStreamDestination();
+                player._audioStreamDest = dest;
+                
+                source.connect(dest);
+                source.connect(state.audioCtx.destination);
+            }
+            const dest = player._audioStreamDest;
+
+            // Clear any existing tracks on stream first, then add the new one
+            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
             dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
             state.recordedChunks = [];
@@ -3614,32 +3629,30 @@ ${rawText}`;
 
             const stream = sCanvas.captureStream(30);
 
-            // Audio Routing
-            let audioTracks = [];
-            try {
-                if (player.captureStream) {
-                    audioTracks = player.captureStream().getAudioTracks();
-                } else if (player.mozCaptureStream) {
-                    audioTracks = player.mozCaptureStream().getAudioTracks();
-                }
-            } catch (e) {
-                console.warn("Direct stream capture failed, trying Web Audio API...", e);
+            // Connect Audio to Stream via Web Audio API using a shared cached Source/Context
+            if (!state.audioCtx) {
+                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (state.audioCtx.state === 'suspended') {
+                await state.audioCtx.resume();
             }
 
-            if (audioTracks.length > 0) {
-                audioTracks.forEach(track => stream.addTrack(track));
-            } else {
-                try {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const source = audioCtx.createMediaElementSource(player);
-                    const audioStreamDest = audioCtx.createMediaStreamDestination();
-                    source.connect(audioStreamDest);
-                    source.connect(audioCtx.destination);
-                    audioStreamDest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-                } catch(e) {
-                    console.warn("AudioContext fallback routing active:", e);
-                }
+            let source = player._audioSourceNode;
+            if (!source) {
+                source = state.audioCtx.createMediaElementSource(player);
+                player._audioSourceNode = source;
+                
+                const dest = state.audioCtx.createMediaStreamDestination();
+                player._audioStreamDest = dest;
+                
+                source.connect(dest);
+                source.connect(state.audioCtx.destination);
             }
+            const dest = player._audioStreamDest;
+
+            // Clear any existing tracks on stream first, then add the new one
+            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
+            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
             const recordedChunks = [];
             let mediaRecorder;
@@ -3927,33 +3940,30 @@ ${rawText}`;
 
             const stream = sCanvas.captureStream(30);
             
-            // Audio Routing: Primero intentamos a través de captureStream nativo del reproductor de video (muy compatible con celulares/Chrome)
-            let audioTracks = [];
-            try {
-                if (player.captureStream) {
-                    audioTracks = player.captureStream().getAudioTracks();
-                } else if (player.mozCaptureStream) {
-                    audioTracks = player.mozCaptureStream().getAudioTracks();
-                }
-            } catch (e) {
-                console.warn("Natively capturing video element audio tracks failed, falling back to Web Audio API routing...", e);
+            // Connect Audio to Stream via Web Audio API using a shared cached Source/Context
+            if (!state.audioCtx) {
+                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (state.audioCtx.state === 'suspended') {
+                await state.audioCtx.resume();
             }
 
-            if (audioTracks.length > 0) {
-                audioTracks.forEach(track => stream.addTrack(track));
-            } else {
-                // Fallback using Web Audio API
-                try {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const source = audioCtx.createMediaElementSource(player);
-                    const audioStreamDest = audioCtx.createMediaStreamDestination();
-                    source.connect(audioStreamDest);
-                    source.connect(audioCtx.destination); // Seguir oyendo el audio
-                    audioStreamDest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-                } catch(e) {
-                    console.warn("Web Audio API routing failed or already bound. Trying directly:", e);
-                }
+            let source = player._audioSourceNode;
+            if (!source) {
+                source = state.audioCtx.createMediaElementSource(player);
+                player._audioSourceNode = source;
+                
+                const dest = state.audioCtx.createMediaStreamDestination();
+                player._audioStreamDest = dest;
+                
+                source.connect(dest);
+                source.connect(state.audioCtx.destination);
             }
+            const dest = player._audioStreamDest;
+
+            // Clear any existing tracks on stream first, then add the new one
+            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
+            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
 
             const recordedChunks = [];
             let mediaRecorder;
