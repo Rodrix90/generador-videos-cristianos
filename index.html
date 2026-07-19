@@ -2038,8 +2038,8 @@ ${rawText}`;
              // Draw Subtitles Lyrics (4K proportions)
             if (seg && seg.text) {
                 const textLines = seg.text.split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0 && !(line.startsWith('[') && line.endsWith(']')));
+                    .map(line => formatLyricsLine(line))
+                    .filter(line => line && line.length > 0);
 
                 if (textLines.length > 0) {
                     ctx.textAlign = 'center';
@@ -2071,11 +2071,22 @@ ${rawText}`;
 
                     textLines.forEach((line, idx) => {
                         const y = startY + (idx * lineHeight);
+                        const isInstrumental = line.startsWith('♫');
                         
-                        // Glow Effect
-                        ctx.shadowColor = state.canvasStyle.glowColor;
-                        ctx.shadowBlur = 45;
-                        ctx.fillStyle = state.canvasStyle.textColor;
+                        ctx.save();
+                        if (isInstrumental) {
+                            // Estilo instrumental dorado e itálica
+                            ctx.font = `italic bold ${Math.round(currentSize * 0.85)}px ${state.canvasStyle.fontFamily}`;
+                            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                            ctx.shadowBlur = 15;
+                            ctx.fillStyle = '#f59e0b'; // Color oro elegante
+                        } else {
+                            // Glow Effect normal
+                            ctx.shadowColor = state.canvasStyle.glowColor;
+                            ctx.shadowBlur = 45;
+                            ctx.fillStyle = state.canvasStyle.textColor;
+                        }
+                        
                         ctx.fillText(line, canvas.width / 2, y);
                         
                         // Reset shadow for stroke
@@ -2083,6 +2094,7 @@ ${rawText}`;
                         ctx.strokeStyle = 'rgba(0,0,0,0.85)';
                         ctx.lineWidth = 8;
                         ctx.strokeText(line, canvas.width / 2, y);
+                        ctx.restore();
                     });
                 }
             }
@@ -3257,8 +3269,8 @@ ${rawText}`;
 
                 if (seg && seg.text) {
                     const textLines = seg.text.split('\n')
-                        .map(line => line.trim())
-                        .filter(line => line.length > 0 && !(line.startsWith('[') && line.endsWith(']')));
+                        .map(line => formatLyricsLine(line))
+                        .filter(line => line && line.length > 0);
 
                     if (textLines.length > 0) {
                         sCtx.textAlign = 'center';
@@ -3286,16 +3298,26 @@ ${rawText}`;
                         const startY = (sCanvas.height / 2) - ((textLines.length - 1) * lineHeight / 2);
                         textLines.forEach((line, idx) => {
                             const y = startY + (idx * lineHeight);
+                            const isInstrumental = line.startsWith('♫');
                             
-                            sCtx.shadowColor = '#f59e0b';
-                            sCtx.shadowBlur = 30;
-                            sCtx.fillStyle = '#ffffff';
+                            sCtx.save();
+                            if (isInstrumental) {
+                                sCtx.font = `italic bold ${Math.round(currentSize * 0.85)}px 'Montserrat', sans-serif`;
+                                sCtx.shadowColor = 'rgba(0,0,0,0.5)';
+                                sCtx.shadowBlur = 15;
+                                sCtx.fillStyle = '#f59e0b'; // Oro
+                            } else {
+                                sCtx.shadowColor = '#f59e0b';
+                                sCtx.shadowBlur = 30;
+                                sCtx.fillStyle = '#ffffff';
+                            }
                             sCtx.fillText(line, sCanvas.width / 2, y);
                             
                             sCtx.shadowBlur = 0;
                             sCtx.strokeStyle = 'rgba(0,0,0,0.85)';
                             sCtx.lineWidth = 8;
                             sCtx.strokeText(line, sCanvas.width / 2, y);
+                            sCtx.restore();
                         });
                     }
                 }
@@ -3408,6 +3430,36 @@ ${rawText}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+        }
+
+        function formatLyricsLine(line) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                const content = trimmed.slice(1, -1).trim();
+                const contentLower = content.toLowerCase();
+                
+                // Si es marcador estructural de letra (sección), no mostrar nada
+                if (contentLower.startsWith('verso') || 
+                    contentLower.startsWith('coro') || 
+                    contentLower.startsWith('puente') || 
+                    contentLower.startsWith('verse') || 
+                    contentLower.startsWith('chorus') || 
+                    contentLower.startsWith('bridge') ||
+                    contentLower.startsWith('estrofa') ||
+                    contentLower.startsWith('solo coro') ||
+                    contentLower.startsWith('coro solo')) {
+                    return "";
+                }
+                
+                // Si es silencio/silence
+                if (contentLower === 'silence' || contentLower === 'silencio') {
+                    return '♫ ♫ ♫';
+                }
+                
+                // Si es instrumental/introducción/solo instrumental
+                return `♫ ${content} ♫`;
+            }
+            return line;
         }
 
         function shiftAllTimes(seconds) {
