@@ -1873,11 +1873,18 @@ ${rawText}`;
                 btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Generando...`;
                 lucide.createIcons();
             }
-            for (let i = 0; i < state.segments.length; i++) {
-                await generateSingleImage(i);
-                // Pausa de 500ms entre solicitudes secuenciales
-                await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Generar en lotes de 3 en paralelo para maximizar la velocidad sin saturar
+            const batchSize = 3;
+            for (let i = 0; i < state.segments.length; i += batchSize) {
+                const batch = [];
+                for (let j = i; j < i + batchSize && j < state.segments.length; j++) {
+                    batch.push(generateSingleImage(j));
+                }
+                await Promise.all(batch);
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
+
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="image"></i> Generar Todas las Imágenes`;
@@ -2888,17 +2895,18 @@ ${rawText}`;
             const cleanPrompt = promptText.replace(/[^a-zA-Z0-9 ,.-]/g, '');
 
             state.compilationImages = [];
-            for (let i = 0; i < 6; i++) {
+            const promises = Array.from({ length: 6 }).map(() => {
                 const seed = Math.floor(Math.random() * 100000);
                 const rawUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1920&height=1080&nologo=true&seed=${seed}`;
-                await new Promise((resolve) => {
+                return new Promise((resolve) => {
                     const img = new Image();
                     img.crossOrigin = "anonymous";
                     img.onload = () => { state.compilationImages.push(img); resolve(); };
                     img.onerror = () => resolve();
                     img.src = rawUrl;
                 });
-            }
+            });
+            await Promise.all(promises);
 
             if (btn) {
                 btn.disabled = false;
