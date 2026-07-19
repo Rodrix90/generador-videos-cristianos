@@ -2230,9 +2230,14 @@ ${rawText}`;
                 recordingWorker.terminate();
 
                 player.playbackRate = 1.0; // Reset normal speed
-                const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
+                const actualType = state.mediaRecorder.mimeType || 'video/webm';
+                const blob = new Blob(state.recordedChunks, { type: actualType });
                 state.lastVideoBlobUrl = URL.createObjectURL(blob);
-                state.lastVideoBlobName = `video_cristiano_${Date.now()}.webm`;
+                let ext = 'webm';
+                if (actualType.includes('mp4') || actualType.includes('quicktime') || actualType.includes('mov')) {
+                    ext = 'mp4';
+                }
+                state.lastVideoBlobName = `video_cristiano_${Date.now()}.${ext}`;
 
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -3103,12 +3108,17 @@ ${rawText}`;
             mediaRecorder.stop();
 
             mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const actualType = mediaRecorder.mimeType || 'video/webm';
+                const blob = new Blob(recordedChunks, { type: actualType });
                 const blobUrl = URL.createObjectURL(blob);
+                let ext = 'webm';
+                if (actualType.includes('mp4') || actualType.includes('quicktime') || actualType.includes('mov')) {
+                    ext = 'mp4';
+                }
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = blobUrl;
-                a.download = `compilacion_oracion_4k_${Date.now()}.webm`;
+                a.download = `compilacion_oracion_4k_${Date.now()}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
 
@@ -3388,14 +3398,19 @@ ${rawText}`;
 
                 player.pause();
                 
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const actualType = mediaRecorder.mimeType || 'video/webm';
+                const blob = new Blob(recordedChunks, { type: actualType });
                 state.lastShortVideoBlob = blob; // Guardar globalmente
                 
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = blobUrl;
-                a.download = `short_vertical_${Date.now()}.webm`;
+                let ext = 'webm';
+                if (actualType.includes('mp4') || actualType.includes('quicktime') || actualType.includes('mov')) {
+                    ext = 'mp4';
+                }
+                a.download = `short_vertical_${Date.now()}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -3831,14 +3846,19 @@ ${rawText}`;
                 player.pause();
                 animActive = false;
                 
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const actualType = mediaRecorder.mimeType || 'video/webm';
+                const blob = new Blob(recordedChunks, { type: actualType });
                 state.lastShortVideoBlob = blob; // Guardar globalmente para subida directa
 
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = blobUrl;
-                a.download = `mp3_short_${Date.now()}.webm`;
+                let ext = 'webm';
+                if (actualType.includes('mp4') || actualType.includes('quicktime') || actualType.includes('mov')) {
+                    ext = 'mp4';
+                }
+                a.download = `mp3_short_${Date.now()}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -4105,14 +4125,19 @@ ${rawText}`;
                 player.pause();
                 animActive = false;
                 
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const actualType = mediaRecorder.mimeType || 'video/webm';
+                const blob = new Blob(recordedChunks, { type: actualType });
                 state.lastShortVideoBlob = blob; // Guardar globalmente
                 
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = blobUrl;
-                a.download = `youtube_short_${Date.now()}.webm`;
+                let ext = 'webm';
+                if (actualType.includes('mp4') || actualType.includes('quicktime') || actualType.includes('mov')) {
+                    ext = 'mp4';
+                }
+                a.download = `youtube_short_${Date.now()}.${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
