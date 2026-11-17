@@ -372,26 +372,10 @@
             position: relative;
         }
 
-        .segment-img-preview img,
-        .segment-img-preview video {
+        .segment-img-preview img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
-        }
-
-        .video-source-badge {
-            position: absolute;
-            left: 0.35rem;
-            bottom: 0.35rem;
-            background: rgba(0,0,0,0.72);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.16);
-            border-radius: 999px;
-            padding: 0.18rem 0.45rem;
-            font-size: 0.62rem;
-            line-height: 1;
-            backdrop-filter: blur(6px);
         }
 
         /* Step 3 Studio Layout */
@@ -674,7 +658,7 @@
             </div>
             <div class="step-item" id="nav-step2" onclick="goToStep(2)">
                 <span class="step-number">2</span>
-                <span>Segmentación y Videos 4K</span>
+                <span>Segmentación e Imágenes IA</span>
             </div>
             <div class="step-item" id="nav-step3" onclick="goToStep(3)">
                 <span class="step-number">3</span>
@@ -780,17 +764,14 @@
             </div>
         </section>
 
-        <!-- STEP 2: Segmentación y Videos 4K -->
+        <!-- STEP 2: Segmentación e Imágenes -->
         <section class="view-content" id="view-step2">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <div>
-                    <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">Segmentación y Fondos de Video 4K</h2>
-                    <p style="color: var(--text-muted); margin-bottom: 0.4rem;">Ajusta los tiempos exactos de cada estrofa y asigna un pequeño clip de paisaje 4K para sincronizarlo perfectamente con el audio.</p>
-                    <p style="color: #60a5fa; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin: 0;">
-                        🎬 Los clips se buscan online en Pexels y se filtran en formato horizontal 4K. Configura tu Pexels API Key una sola vez en “API Keys & Configuración”.
-                    </p>
-                    <p style="margin: 0.35rem 0 0; font-size: 0.72rem; color: var(--text-muted);">
-                        Videos provistos por <a href="https://www.pexels.com/" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;">Pexels</a>.
+                    <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">Segmentación y Prompts de Imágenes IA</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 0.4rem;">Ajusta los tiempos exactos de cada estrofa para sincronizarlos perfectamente con el audio.</p>
+                    <p style="color: #f59e0b; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin: 0;">
+                        ⚠️ Si las imágenes aparecen rotas, desactiva los "Escudos de Brave" (Shields) o tu bloqueador de anuncios para esta web.
                     </p>
                 </div>
                 <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
@@ -808,11 +789,11 @@
                     <button class="btn btn-secondary btn-sm" onclick="autoSegmentLyrics()">
                         <i data-lucide="sparkles"></i> Recalcular Tiempos
                     </button>
-                    <button class="btn btn-primary btn-sm" onclick="generateAllVideos()">
-                        <i data-lucide="film"></i> Buscar Todos los Videos 4K
+                    <button class="btn btn-primary btn-sm" onclick="generateAllImages()">
+                        <i data-lucide="image"></i> Generar Todas las Imágenes
                     </button>
-                    <button class="btn btn-secondary btn-sm" onclick="runVideoDiagnostics()" id="btnDiagnostics" style="background: rgba(96, 165, 250, 0.15); border-color: rgba(96, 165, 250, 0.4); color: #60a5fa;">
-                        <i data-lucide="activity"></i> Diagnóstico Pexels 4K
+                    <button class="btn btn-secondary btn-sm" onclick="runDiagnostics()" id="btnDiagnostics" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
+                        <i data-lucide="activity"></i> Diagnóstico de Conexión IA
                     </button>
                 </div>
             </div>
@@ -826,7 +807,7 @@
             </div>
 
             <div class="segments-container" id="segmentsList">
-                <!-- Los segmentos y previews de video 4K se renderizan aquí dinámicamente -->
+                <!-- Segments will be rendered here dynamically -->
             </div>
 
             <div class="action-bar">
@@ -842,7 +823,7 @@
         <!-- STEP 3: Estudio & Renderizado -->
         <section class="view-content" id="view-step3">
             <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">Estudio de Animación y Renderizado</h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Ajusta la apariencia visual de las letras y renderiza en tiempo real sobre los clips 4K seleccionados.</p>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Ajusta la apariencia visual de las letras y renderiza el video en tiempo real.</p>
 
             <div class="studio-grid">
                 <!-- Canvas Video Preview -->
@@ -895,10 +876,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Efecto de Transición de Video</label>
+                        <label>Efecto de Transición de Imagen</label>
                         <select id="transitionSelect" onchange="updateCanvasStyle()">
-                            <option value="fade" selected>Disolución Suave entre Clips + Zoom</option>
-                            <option value="zoom">Zoom Cinematográfico Suave</option>
+                            <option value="fade" selected>Disolución Suave (Crossfade) + Zoom</option>
+                            <option value="zoom">Solo Efecto Ken Burns (Zoom Lento)</option>
                             <option value="none">Cambio Directo</option>
                         </select>
                     </div>
@@ -926,7 +907,7 @@
 
             <div class="action-bar">
                 <button class="btn btn-secondary" onclick="goToStep(2)">
-                    <i data-lucide="arrow-left"></i> Volver a Videos 4K
+                    <i data-lucide="arrow-left"></i> Volver a Imágenes
                 </button>
                 <button class="btn btn-primary" onclick="goToStep(4)">
                     Ver Metadatos YouTube <i data-lucide="arrow-right"></i>
@@ -944,7 +925,7 @@
                     <h3 style="color: var(--success); font-size: 1.1rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i data-lucide="video"></i> Video Renderizado
                     </h3>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Si grabaste el video en el Paso 3, el archivo 4K con audio, letra sincronizada y fondos de video se descargó automáticamente en tu carpeta de Descargas.</p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Si grabaste el video en el Paso 3, tu archivo .webm se descargó automáticamente en tu carpeta de Descargas.</p>
                 </div>
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                     <button class="btn btn-secondary btn-sm" id="btnDownloadStep4" onclick="downloadLastRecordedVideo()" style="display: none;">
@@ -1174,8 +1155,8 @@
                         </div>
 
                         <div class="form-group" style="margin-bottom: 1rem;">
-                            <label>Búsqueda de Paisajes 4K (Pexels)</label>
-                            <textarea id="compPromptInput" style="min-height: 70px; font-size: 0.85rem;">peaceful mountains sunset clouds nature</textarea>
+                            <label>Estilo de Fondos Celestiales (Prompt IA)</label>
+                            <textarea id="compPromptInput" style="min-height: 70px; font-size: 0.85rem;">4K UHD, pure nature landscape photography, peaceful mountains at sunset, serene alpine lake, dramatic volumetric clouds, golden sunbeams, no people, no text</textarea>
                         </div>
 
                         <button class="btn btn-secondary btn-sm" onclick="generateCompilationBackgrounds()" id="btnGenCompImg" style="width: 100%;">
@@ -1371,7 +1352,7 @@
                 <div class="modal-title"><i data-lucide="key" style="vertical-align: middle;"></i> Configuración de API Keys</div>
                 <button class="close-modal" onclick="toggleModal('settingsModal', false)"><i data-lucide="x"></i></button>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Las llaves de API se guardan únicamente en el almacenamiento local de este navegador (localStorage). No se incluyen dentro del repositorio de GitHub.</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Las llaves de API se guardan únicamente en el almacenamiento local de tu navegador (localStorage) para mayor seguridad.</p>
             
             <div class="form-group">
                 <label>Anthropic API Key (Claude - Segmentación y Prompts)</label>
@@ -1379,16 +1360,21 @@
             </div>
 
             <div class="form-group">
-                <label>Pexels API Key (Fondos de Video 4K)</label>
-                <input type="password" id="pexelsKey" placeholder="Tu API Key de Pexels">
-                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; line-height:1.4;">
-                    Se usa solamente para buscar clips de paisajes 4K. La clave se guarda en el localStorage de este navegador.
-                    <a href="https://www.pexels.com/api/" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;">Obtener API Key de Pexels</a>
-                </div>
+                <label>Generador de Imágenes por Defecto</label>
+                <select id="imageGeneratorEngine" onchange="toggleEngineKeyInput()">
+                    <option value="pollinations">Pollinations.ai (Gratis / Sin API Key)</option>
+                    <option value="stability">Stability AI SDXL (Requiere Key)</option>
+                    <option value="openai">OpenAI DALL-E 3 (Requiere Key - Ultra Específico)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="stabilityKeyGroup" style="display: none;">
+                <label>Stability AI API Key</label>
+                <input type="password" id="stabilityKey" placeholder="sk-...">
             </div>
 
             <div class="form-group">
-                <label>OpenAI API Key (Whisper Transcripción)</label>
+                <label>OpenAI API Key (Para DALL-E 3 y Whisper Transcripción)</label>
                 <input type="password" id="openaiKey" placeholder="sk-proj-...">
             </div>
 
@@ -1411,7 +1397,7 @@
             audioUrl: null,
             audioDuration: 0,
             lyrics: '',
-            segments: [], // { text, startTime, endTime, prompt, videoUrl, pexelsId, pexelsPage, pexelsUser }
+            segments: [], // { text, startTime, endTime, prompt, imageUrl }
             canvasStyle: {
                 fontFamily: "'Montserrat', sans-serif",
                 fontSize: 130,
@@ -1421,16 +1407,16 @@
             },
             keys: {
                 anthropic: '',
-                pexels: '',
+                stability: '',
                 openai: '',
-                googleClientId: ''
+                googleClientId: '',
+                engine: 'pollinations'
             },
             isPlaying: false,
             mediaRecorder: null,
             recordedChunks: [],
             compilationTracks: [], // { file, name, duration, url }
-            compilationImages: [],
-            compilationVideos: []
+            compilationImages: []
         };
 
         // Initialize App
@@ -1448,30 +1434,36 @@
 
         function loadSettings() {
             state.keys.anthropic = localStorage.getItem('yt_anthropic_key') || '';
-            state.keys.pexels = localStorage.getItem('yt_pexels_key') || '';
+            state.keys.stability = localStorage.getItem('yt_stability_key') || '';
             state.keys.openai = localStorage.getItem('yt_openai_key') || '';
             state.keys.googleClientId = localStorage.getItem('yt_google_client_id') || '';
+            state.keys.engine = localStorage.getItem('yt_img_engine') || 'pollinations';
 
             document.getElementById('anthropicKey').value = state.keys.anthropic;
-            document.getElementById('pexelsKey').value = state.keys.pexels;
+            document.getElementById('stabilityKey').value = state.keys.stability;
             document.getElementById('openaiKey').value = state.keys.openai;
             document.getElementById('googleClientId').value = state.keys.googleClientId;
+            document.getElementById('imageGeneratorEngine').value = state.keys.engine;
+            toggleEngineKeyInput();
         }
 
         function toggleEngineKeyInput() {
-            // Compatibilidad con versiones anteriores. Los fondos principales ahora usan Pexels Video API.
+            const engine = document.getElementById('imageGeneratorEngine').value;
+            document.getElementById('stabilityKeyGroup').style.display = (engine === 'stability') ? 'block' : 'none';
         }
 
         function saveSettings() {
             state.keys.anthropic = document.getElementById('anthropicKey').value.trim();
-            state.keys.pexels = document.getElementById('pexelsKey').value.trim();
+            state.keys.stability = document.getElementById('stabilityKey').value.trim();
             state.keys.openai = document.getElementById('openaiKey').value.trim();
             state.keys.googleClientId = document.getElementById('googleClientId').value.trim();
+            state.keys.engine = document.getElementById('imageGeneratorEngine').value;
 
             localStorage.setItem('yt_anthropic_key', state.keys.anthropic);
-            localStorage.setItem('yt_pexels_key', state.keys.pexels);
+            localStorage.setItem('yt_stability_key', state.keys.stability);
             localStorage.setItem('yt_openai_key', state.keys.openai);
             localStorage.setItem('yt_google_client_id', state.keys.googleClientId);
+            localStorage.setItem('yt_img_engine', state.keys.engine);
 
             toggleModal('settingsModal', false);
             alert('Configuración guardada correctamente.');
@@ -1588,46 +1580,35 @@
 
         function generateLocalPromptForText(text) {
             const lower = (text || '').toLowerCase();
-            const candidates = [];
+            let landscapeTheme = '';
 
-            if (lower.includes('cruz') || lower.includes('calvario') || lower.includes('madero')) {
-                candidates.push('cross sunset mountain');
-            }
-            if (lower.includes('cielo') || lower.includes('gloria') || lower.includes('luz') || lower.includes('nubes')) {
-                candidates.push('dramatic clouds sun rays landscape');
-            }
-            if (lower.includes('mar') || lower.includes('agua') || lower.includes('rio') || lower.includes('río')) {
-                candidates.push('ocean waves sunset');
-            }
-            if (lower.includes('paz') || lower.includes('amor') || lower.includes('descanso')) {
-                candidates.push('peaceful lake mountains sunrise');
-            }
-            if (lower.includes('camino') || lower.includes('andar') || lower.includes('sendero')) {
-                candidates.push('mountain road sunrise');
-            }
-            if (lower.includes('noche') || lower.includes('estrella')) {
-                candidates.push('starry night mountains');
-            }
-            if (lower.includes('flor') || lower.includes('campo') || lower.includes('valle')) {
-                candidates.push('wildflower valley golden hour');
-            }
-            if (lower.includes('bosque') || lower.includes('árbol') || lower.includes('arbol')) {
-                candidates.push('forest sun rays nature');
-            }
-
-            if (candidates.length === 0) {
-                const defaults = [
-                    'mountain sunset landscape',
-                    'peaceful ocean sunrise',
-                    'forest sun rays',
-                    'clouds golden hour landscape',
-                    'lake mountains nature'
+            if (lower.includes('cruz') || lower.includes('madero') || lower.includes('calvario')) {
+                landscapeTheme = 'majestic mountain peaks at sunset, glowing golden rays of sunlight breaking through clouds, scenic peaceful nature landscape';
+            } else if (lower.includes('mar') || lower.includes('agua') || lower.includes('rio') || lower.includes('río') || lower.includes('naufrago') || lower.includes('tempestad')) {
+                landscapeTheme = 'crystal clear calm ocean sunrise, gentle waves reflecting warm golden sunbeams, breathtaking coastal nature landscape';
+            } else if (lower.includes('cielo') || lower.includes('nubes') || lower.includes('gloria') || lower.includes('luz') || lower.includes('sol')) {
+                landscapeTheme = 'breathtaking aerial sky, dramatic volumetric golden sunset clouds, sunbeams through horizon, pristine nature landscape';
+            } else if (lower.includes('bosque') || lower.includes('arbol') || lower.includes('árbol') || lower.includes('verde') || lower.includes('monte')) {
+                landscapeTheme = 'enchanted lush green alpine forest, sun rays piercing through misty pine trees, calm nature landscape';
+            } else if (lower.includes('valle') || lower.includes('flor') || lower.includes('campo') || lower.includes('prado') || lower.includes('paz')) {
+                landscapeTheme = 'peaceful green valley with blooming wildflowers at sunrise, tranquil lake reflection, scenic mountain landscape';
+            } else if (lower.includes('noche') || lower.includes('estrella') || lower.includes('luna')) {
+                landscapeTheme = 'serene starry night over majestic mountain silhouette, clear tranquil lake reflection, stunning nature landscape';
+            } else if (lower.includes('camino') || lower.includes('sendero') || lower.includes('andar') || lower.includes('paso')) {
+                landscapeTheme = 'serene winding nature trail through golden autumn valley and mountains at dawn, inspiring landscape scenery';
+            } else {
+                const landscapeDefaults = [
+                    'magnificent mountain range at golden hour sunset, glowing clouds, cinematic nature landscape',
+                    'peaceful turquoise lake surrounded by majestic snow-capped mountains, crystal reflections landscape',
+                    'serene sunrise over rolling green hills and wildflower valleys, warm morning mist landscape',
+                    'breathtaking coastal cliffs and calm ocean waters at sunset, golden horizon nature landscape',
+                    'stunning autumn alpine forest with sunlight filtering through trees, scenic nature landscape'
                 ];
                 const seed = Array.from(lower).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-                return defaults[seed % defaults.length];
+                landscapeTheme = landscapeDefaults[seed % landscapeDefaults.length];
             }
 
-            return candidates[0];
+            return `4K UHD, pure nature landscape photography, ${landscapeTheme}, national geographic style, dramatic volumetric lighting, peaceful scenery, no people, no text`;
         }
 
         // Auto-Segmentation & Prompts with Claude or Fallback
@@ -1665,23 +1646,20 @@
                     startTime: parseFloat(startTime.toFixed(1)),
                     endTime: parseFloat(endTime.toFixed(1)),
                     prompt: generateLocalPromptForText(block.trim()),
-                    imageUrl: null,
-                    videoUrl: null,
-                    pexelsId: null,
-                    pexelsPage: '',
-                    pexelsUser: ''
+                    imageUrl: null
                 });
             });
 
             // If Claude Key is available, request smart prompt enhancement & segment refinement
             if (state.keys.anthropic) {
                 try {
-                    const promptText = `Eres un director creativo visual para videos musicales cristianos en YouTube.
-Analiza la siguiente letra y genera un arreglo JSON con estrofas bien divididas y una búsqueda breve en inglés para encontrar video stock de paisaje cinematográfico en Pexels.
-El campo "prompt" debe tener entre 2 y 6 palabras concretas, sin mencionar marcas, artistas, personas famosas ni estilos protegidos. Prioriza naturaleza, montañas, mar, bosques, nubes, amanecer, atardecer, caminos, lagos y cielos.
-Responde ÚNICAMENTE en formato JSON con esta estructura:
+                    const promptText = `Eres un director creativo visual para videos musicales cristianos en YouTube de alta calidad. 
+Analiza la siguiente letra de canción y genera un arreglo en JSON con estrofas bien divididas y prompts de arte digital HD inspiradores para cada estrofa.
+Cada prompt debe estar redactado en inglés y describir escenas celestiales, hermosas, espirituales y bíblicas que representen de manera poética la letra de la estrofa.
+Usa palabras clave de renderizado como: "4K UHD, sacred Christian art style, detailed cinematic scenery, dramatic volumetric lighting, peaceful worship atmosphere".
+Responde ÚNICAMENTE en formato JSON con la siguiente estructura de lista:
 [
-  { "id": 1, "text": "letra de la estrofa", "prompt": "mountain sunset clouds" }
+  { "id": 1, "text": "letra de la estrofa", "prompt": "prompt detallado en inglés para la imagen de IA (ej: 4K UHD, sacred Christian art style, heavenly rays of divine light breaking through dramatic golden clouds, detailed cinematic scenery, peaceful worship atmosphere)" }
 ]
 
 Letra:
@@ -1712,12 +1690,8 @@ ${rawText}`;
                                 text: item.text,
                                 startTime: calculatedSegments[idx]?.startTime || parseFloat(((idx / parsed.length) * singableDuration + introOffset).toFixed(1)),
                                 endTime: calculatedSegments[idx]?.endTime || parseFloat((((idx + 1) / parsed.length) * singableDuration + introOffset).toFixed(1)),
-                                prompt: item.prompt,
-                                imageUrl: null,
-                                videoUrl: null,
-                                pexelsId: null,
-                                pexelsPage: '',
-                                pexelsUser: ''
+                                prompt: item.prompt + ", sacred Christian art style, dramatic atmosphere, high definition",
+                                imageUrl: null
                             }));
                         }
                     }
@@ -1739,12 +1713,8 @@ ${rawText}`;
                     text: "[Introducción Instrumental / Música de Inicio]",
                     startTime: 0,
                     endTime: introOffset,
-                    prompt: "peaceful mountains sunrise",
-                    imageUrl: null,
-                    videoUrl: null,
-                    pexelsId: null,
-                    pexelsPage: '',
-                    pexelsUser: ''
+                    prompt: "4K UHD, pure nature landscape photography, magnificent sunrise over peaceful mountain lake, morning mist, golden sunbeams, tranquil landscape, no people, no text",
+                    imageUrl: null
                 });
             }
 
@@ -1759,16 +1729,6 @@ ${rawText}`;
             state.segments.forEach((seg, index) => {
                 const card = document.createElement('div');
                 card.className = 'segment-card';
-
-                const videoPreview = seg.videoUrl
-                    ? `<video src="${seg.videoUrl}" muted loop playsinline autoplay preload="metadata"></video>
-                       <span class="video-source-badge">4K · Pexels</span>`
-                    : `<i data-lucide="film" style="color:var(--text-muted);"></i>`;
-
-                const sourceLink = seg.pexelsPage
-                    ? `<a href="${seg.pexelsPage}" target="_blank" rel="noopener noreferrer" style="font-size:0.68rem; color:#60a5fa; text-decoration:none;">Ver fuente en Pexels ↗</a>`
-                    : `<span style="font-size:0.68rem; color:var(--text-muted);">Sin clip asignado</span>`;
-
                 card.innerHTML = `
                     <div class="segment-time">
                         <span class="badge badge-info">Estrofa ${seg.id}</span>
@@ -1784,16 +1744,14 @@ ${rawText}`;
                     </div>
                     <div class="segment-prompt-box">
                         <textarea style="min-height:70px; font-size:0.9rem;" onchange="updateSegmentText(${index}, this.value)">${seg.text}</textarea>
-                        <input type="text" value="${seg.prompt || ''}" placeholder="Búsqueda para paisaje 4K: mountain sunset..." style="font-size:0.85rem;" onchange="updateSegmentPrompt(${index}, this.value)">
-                        <div style="font-size:0.7rem; color:var(--text-muted);">Usá términos simples en inglés para obtener mejores resultados de video stock.</div>
+                        <input type="text" value="${seg.prompt}" placeholder="Prompt para la imagen de IA..." style="font-size:0.85rem;" onchange="updateSegmentPrompt(${index}, this.value)">
                     </div>
                     <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:center;">
                         <div class="segment-img-preview" id="imgPrev_${index}">
-                            ${videoPreview}
+                            ${seg.imageUrl ? `<img src="${seg.imageUrl}">` : `<i data-lucide="image" style="color:var(--text-muted);"></i>`}
                         </div>
-                        ${sourceLink}
-                        <button class="btn btn-secondary btn-sm" onclick="generateSingleVideo(${index})">
-                            <i data-lucide="sparkles"></i> Buscar Video 4K
+                        <button class="btn btn-secondary btn-sm" onclick="generateSingleImage(${index})">
+                            <i data-lucide="sparkles"></i> Generar Imagen
                         </button>
                     </div>
                 `;
@@ -1827,163 +1785,105 @@ ${rawText}`;
         }
 
         // Image Generation Engine
-        async function searchPexels4KVideo(query, excludedIds = []) {
-            if (!state.keys.pexels) {
-                throw new Error('PEXELS_KEY_MISSING');
-            }
-
-            const normalizedQuery = (query || 'mountain sunset landscape').trim() || 'mountain sunset landscape';
-            const page = 1 + Math.floor(Math.random() * 4);
-            const params = new URLSearchParams({
-                query: normalizedQuery,
-                orientation: 'landscape',
-                size: 'large',
-                locale: 'en-US',
-                per_page: '30',
-                page: String(page)
-            });
-
-            const response = await fetch(`https://api.pexels.com/v1/videos/search?${params.toString()}`, {
-                headers: { 'Authorization': state.keys.pexels }
-            });
-
-            if (!response.ok) {
-                let detail = '';
-                try { detail = await response.text(); } catch (_) {}
-                throw new Error(`Pexels HTTP ${response.status}${detail ? ': ' + detail.slice(0, 160) : ''}`);
-            }
-
-            const data = await response.json();
-            const excluded = new Set(excludedIds.filter(Boolean).map(Number));
-
-            const candidates = [];
-            for (const video of (data.videos || [])) {
-                if (excluded.has(Number(video.id))) continue;
-
-                const files = (video.video_files || [])
-                    .filter(f => f.file_type === 'video/mp4' && f.link && f.width && f.height)
-                    .sort((a, b) => (b.width * b.height) - (a.width * a.height));
-
-                const exact4k = files.find(f => f.width >= 3840 && f.height >= 2160);
-                const best = exact4k || files[0];
-                if (!best) continue;
-
-                candidates.push({
-                    id: video.id,
-                    link: best.link,
-                    width: best.width,
-                    height: best.height,
-                    duration: video.duration || 0,
-                    page: video.url || 'https://www.pexels.com/',
-                    user: video.user?.name || 'Pexels',
-                    userPage: video.user?.url || 'https://www.pexels.com/',
-                    exact4k: !!exact4k
-                });
-            }
-
-            if (candidates.length === 0 && normalizedQuery !== 'nature landscape') {
-                return searchPexels4KVideo('nature landscape', excludedIds);
-            }
-
-            // Preferencia estricta por 4K real; si Pexels devuelve varias versiones, usa la de mayor resolución.
-            const exact = candidates.filter(c => c.exact4k);
-            const pool = exact.length ? exact : candidates;
-            if (!pool.length) throw new Error('No se encontraron videos para esta búsqueda.');
-
-            return pool[Math.floor(Math.random() * pool.length)];
-        }
-
-        function waitForVideoReady(video, timeoutMs = 15000) {
-            return new Promise((resolve, reject) => {
-                if (video.readyState >= 2) {
-                    resolve(video);
-                    return;
-                }
-
-                let finished = false;
-                const done = (ok, err) => {
-                    if (finished) return;
-                    finished = true;
-                    clearTimeout(timer);
-                    video.removeEventListener('loadeddata', onReady);
-                    video.removeEventListener('canplay', onReady);
-                    video.removeEventListener('error', onError);
-                    ok ? resolve(video) : reject(err || new Error('No se pudo precargar el video.'));
-                };
-                const onReady = () => done(true);
-                const onError = () => done(false, new Error('El navegador no pudo cargar el MP4 de Pexels.'));
-                const timer = setTimeout(() => done(false, new Error('Timeout cargando el video 4K.')), timeoutMs);
-
-                video.addEventListener('loadeddata', onReady, { once: true });
-                video.addEventListener('canplay', onReady, { once: true });
-                video.addEventListener('error', onError, { once: true });
-                video.load();
-            });
-        }
-
-        async function generateSingleVideo(index) {
+        async function generateSingleImage(index) {
             const seg = state.segments[index];
             const prevBox = document.getElementById(`imgPrev_${index}`);
-
-            if (!state.keys.pexels) {
-                alert('Para buscar paisajes 4K online, configura primero tu Pexels API Key en “API Keys & Configuración”.');
-                toggleModal('settingsModal', true);
-                return;
-            }
-
-            prevBox.innerHTML = `<i data-lucide="loader-2" class="loading-spinner" style="color:#60a5fa;"></i>`;
+            prevBox.innerHTML = `<i data-lucide="loader-2" class="loading-spinner" style="color:var(--accent);"></i>`;
             lucide.createIcons();
 
             try {
-                const usedIds = state.segments.map(s => s.pexelsId).filter(Boolean);
-                const found = await searchPexels4KVideo(seg.prompt, usedIds);
+                let rawUrl = '';
+                if (state.keys.engine === 'openai' && state.keys.openai) {
+                    // OpenAI DALL-E 3 (Widescreen 16:9)
+                    const response = await fetch("https://api.openai.com/v1/images/generations", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${state.keys.openai}`
+                        },
+                        body: JSON.stringify({
+                            model: "dall-e-3",
+                            prompt: seg.prompt,
+                            n: 1,
+                            size: "1792x1024"
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.data && result.data[0]) {
+                        rawUrl = result.data[0].url;
+                    } else if (result.error) {
+                        console.error("DALL-E Error:", result.error.message);
+                        alert("Error de OpenAI DALL-E: " + result.error.message);
+                    }
+                } else if (state.keys.engine === 'stability' && state.keys.stability) {
+                    // Stability AI SDXL 1.0 (Widescreen 16:9)
+                    const response = await fetch("https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            Authorization: `Bearer ${state.keys.stability}`,
+                        },
+                        body: JSON.stringify({
+                            text_prompts: [{ text: seg.prompt, weight: 1.0 }],
+                            cfg_scale: 8,
+                            height: 768,
+                            width: 1344,
+                            steps: 40,
+                            samples: 1,
+                        }),
+                    });
+                    const result = await response.json();
+                    if (result.artifacts && result.artifacts[0]) {
+                        rawUrl = `data:image/png;base64,${result.artifacts[0].base64}`;
+                    } else if (result.message) {
+                        console.error("Stability Error:", result.message);
+                        alert("Error de Stability AI: " + result.message);
+                    }
+                } else {
+                    // Default Free Engine: Pollinations.ai (High Quality 4K UHD)
+                    const promptText = seg.prompt || "Sacred Christian worship art, dramatic heavenly clouds, rays of light";
+                    const cleanPrompt = promptText.normalize("NFD")
+                                                  .replace(/[\u0300-\u036f]/g, "") // Remueve acentos
+                                                  .replace(/[^a-zA-Z0-9 ,.-]/g, "") // Remueve especiales
+                                                  .trim();
+                    const encodedPrompt = encodeURIComponent(cleanPrompt + ", 4K UHD Ultra High Resolution Christian worship aesthetic");
+                    const seed = Math.floor(Math.random() * 100000);
+                    rawUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=576&nologo=true&seed=${seed}`;
+                }
 
-                const testVideo = document.createElement('video');
-                testVideo.crossOrigin = 'anonymous';
-                testVideo.muted = true;
-                testVideo.loop = true;
-                testVideo.playsInline = true;
-                testVideo.preload = 'auto';
-                testVideo.src = found.link;
-                await waitForVideoReady(testVideo);
-
-                seg.videoUrl = found.link;
-                seg.pexelsId = found.id;
-                seg.pexelsPage = found.page;
-                seg.pexelsUser = found.user;
-                seg.pexelsWidth = found.width;
-                seg.pexelsHeight = found.height;
-                seg.pexelsDuration = found.duration;
-                seg.imageUrl = null;
-
-                prevBox.innerHTML = `
-                    <video src="${found.link}" muted loop playsinline autoplay preload="metadata"></video>
-                    <span class="video-source-badge">${found.width >= 3840 && found.height >= 2160 ? '4K' : `${found.width}×${found.height}`} · Pexels</span>
-                `;
-
-                // Si ya está abierto el estudio, reconstruye el pool de videos.
-                if (typeof preloadSegmentVideos === 'function') {
-                    preloadSegmentVideos();
+                if (rawUrl) {
+                    // Esperar precarga con CORS para asegurar consistencia con el Canvas
+                    await new Promise((resolve) => {
+                        const img = new Image();
+                        img.crossOrigin = "anonymous";
+                        const timer = setTimeout(() => {
+                            resolve();
+                        }, 8000);
+                        img.onload = () => {
+                            clearTimeout(timer);
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            clearTimeout(timer);
+                            resolve();
+                        };
+                        img.src = rawUrl;
+                    });
+                    seg.imageUrl = rawUrl;
+                    prevBox.innerHTML = `<img src="${rawUrl}">`;
+                } else {
+                    prevBox.innerHTML = `<i data-lucide="alert-circle" style="color:var(--danger);"></i>`;
+                    lucide.createIcons();
                 }
             } catch (err) {
-                console.error('Error buscando video 4K:', err);
-                if (String(err.message).includes('PEXELS_KEY_MISSING')) {
-                    alert('Configura tu Pexels API Key para usar los fondos de video 4K.');
-                    toggleModal('settingsModal', true);
-                } else {
-                    alert('No se pudo obtener un video 4K para esta estrofa: ' + err.message);
-                }
+                console.error('Error generando imagen:', err);
                 prevBox.innerHTML = `<i data-lucide="alert-circle" style="color:var(--danger);"></i>`;
                 lucide.createIcons();
             }
         }
 
-        // Alias para no romper enlaces guardados de versiones anteriores.
-        async function generateSingleImage(index) {
-            return generateSingleVideo(index);
-        }
-
-        async function generateAllVideos() {
+        async function generateAllImages() {
             if (!state.segments || state.segments.length === 0) {
                 if (state.lyrics && state.lyrics.trim().length > 0) {
                     await autoSegmentLyrics();
@@ -1993,203 +1893,97 @@ ${rawText}`;
                 }
             }
 
-            if (!state.keys.pexels) {
-                alert('Configura tu Pexels API Key para buscar fondos de video 4K.');
-                toggleModal('settingsModal', true);
-                return;
-            }
-
-            const btn = document.querySelector("button[onclick='generateAllVideos()']");
+            const btn = document.querySelector("button[onclick='generateAllImages()']");
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Buscando videos 4K...`;
+                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Generando...`;
                 lucide.createIcons();
             }
-
-            // Secuencial para respetar el rate limit y evitar descargar demasiados 4K al mismo tiempo.
-            for (let i = 0; i < state.segments.length; i++) {
-                await generateSingleVideo(i);
-                await new Promise(resolve => setTimeout(resolve, 180));
+            
+            // Generar en lotes de 3 en paralelo para maximizar la velocidad sin saturar
+            const batchSize = 3;
+            for (let i = 0; i < state.segments.length; i += batchSize) {
+                const batch = [];
+                for (let j = i; j < i + batchSize && j < state.segments.length; j++) {
+                    batch.push(generateSingleImage(j));
+                }
+                await Promise.all(batch);
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
 
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="film"></i> Buscar Todos los Videos 4K`;
+                btn.innerHTML = `<i data-lucide="image"></i> Generar Todas las Imágenes`;
                 lucide.createIcons();
             }
         }
 
-        async function generateAllImages() {
-            return generateAllVideos();
-        }
-
-        async function runVideoDiagnostics() {
+        async function runDiagnostics() {
             const btn = document.getElementById('btnDiagnostics');
-            if (!state.keys.pexels) {
-                alert('Falta la Pexels API Key. Ábrela desde “API Keys & Configuración”.');
-                toggleModal('settingsModal', true);
-                return;
-            }
-
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Diagnosticando Pexels...`;
+                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Diagnosticando...`;
                 lucide.createIcons();
             }
-
+            
             try {
                 const start = Date.now();
-                const found = await searchPexels4KVideo('mountain landscape', []);
-
-                const video = document.createElement('video');
-                video.crossOrigin = 'anonymous';
-                video.muted = true;
-                video.playsInline = true;
-                video.preload = 'auto';
-                video.src = found.link;
-                await waitForVideoReady(video, 12000);
-
+                const testUrl = "https://image.pollinations.ai/prompt/heavenly%20light%20christian%20cross?width=100&height=100&seed=123";
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                
+                const success = await new Promise((resolve) => {
+                    const timer = setTimeout(() => {
+                        resolve(false);
+                    }, 5000);
+                    img.onload = () => {
+                        clearTimeout(timer);
+                        resolve(true);
+                    };
+                    img.onerror = () => {
+                        clearTimeout(timer);
+                        resolve(false);
+                    };
+                    img.src = testUrl;
+                });
+                
                 const duration = ((Date.now() - start) / 1000).toFixed(1);
-                alert(
-                    `✅ Pexels Video API OK (${duration}s)\n\n` +
-                    `Clip: ${found.width}×${found.height}\n` +
-                    `Duración: ${found.duration || '?'} s\n` +
-                    `Autor: ${found.user}\n\n` +
-                    `El navegador pudo consultar Pexels y precargar el MP4 para el render.`
-                );
+                
+                if (success) {
+                    alert(`✅ ¡Conexión Exitosa con la IA! (${duration}s)\nEl servidor de imágenes responde de forma correcta en tu navegador.\n\nSi aún ves fotos rotas al generar, haz clic en "Recalcular Tiempos" o vuelve a pegar tu letra en el Paso 1 para que la aplicación cree de nuevo los enlaces.`);
+                } else {
+                    alert(`❌ Conexión con la IA Bloqueada o Caída.\n\nEl servidor de imágenes ("pollinations.ai") no respondió a la prueba.\n\nCausas más comunes:\n1. Tienes activo un bloqueador de anuncios (ej. AdBlock, uBlock Origin) que está bloqueando el dominio.\n2. Si estás en Brave, haz clic en el león naranja arriba y apaga los "Escudos de Brave".\n3. Tu proveedor de internet o router tiene bloqueada la dirección por control parental o firewall.`);
+                }
             } catch (err) {
-                console.error(err);
-                alert(
-                    '❌ No se pudo validar Pexels Video API.\n\n' +
-                    err.message +
-                    '\n\nRevisa la API Key, la conexión y que el navegador permita cargar el MP4.'
-                );
+                alert("Error durante el diagnóstico: " + err.message);
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = `<i data-lucide="activity"></i> Diagnóstico Pexels 4K`;
+                    btn.innerHTML = `<i data-lucide="activity"></i> Diagnóstico de Conexión IA`;
                     lucide.createIcons();
                 }
             }
         }
 
-        async function runDiagnostics() {
-            return runVideoDiagnostics();
-        }
-
         // Step 3: Canvas Rendering & Recording Studio
         let canvas, ctx;
         let loadedImages = [];
-        let loadedVideos = [];
-        let activeVideoIndex = -1;
 
         function initCanvasStudio() {
             canvas = document.getElementById('videoCanvas');
             ctx = canvas.getContext('2d');
-            preloadSegmentVideos();
+            preloadSegmentImages();
             drawCanvasFrame(0);
         }
 
-        function preloadSegmentVideos() {
-            loadedVideos.forEach(v => {
-                try { v.pause(); } catch (_) {}
-            });
-
-            loadedVideos = state.segments.map((seg, index) => {
-                if (!seg.videoUrl) return null;
-
-                const video = document.createElement('video');
-                video.crossOrigin = 'anonymous';
-                video.muted = true;
-                video.loop = true;
-                video.playsInline = true;
-                video.preload = 'auto';
-                video.src = seg.videoUrl;
-                video.dataset.segmentIndex = String(index);
-
-                video.addEventListener('loadeddata', () => {
-                    if (index === 0) {
-                        drawCanvasFrame(document.getElementById('audioPlayer')?.currentTime || 0);
-                        drawThumbnailCanvas();
-                    }
-                });
-
-                video.load();
-                return video;
-            });
-
-            activeVideoIndex = -1;
-        }
-
         function preloadSegmentImages() {
-            // Compatibilidad con llamadas antiguas.
-            preloadSegmentVideos();
-        }
-
-        function drawMediaCover(context, media, targetWidth, targetHeight, scaleExtra = 1) {
-            if (!media) return;
-
-            const sourceWidth = media.videoWidth || media.naturalWidth || targetWidth;
-            const sourceHeight = media.videoHeight || media.naturalHeight || targetHeight;
-            if (!sourceWidth || !sourceHeight) return;
-
-            const sourceRatio = sourceWidth / sourceHeight;
-            const targetRatio = targetWidth / targetHeight;
-
-            let sx = 0, sy = 0, sw = sourceWidth, sh = sourceHeight;
-            if (sourceRatio > targetRatio) {
-                sw = sourceHeight * targetRatio;
-                sx = (sourceWidth - sw) / 2;
-            } else if (sourceRatio < targetRatio) {
-                sh = sourceWidth / targetRatio;
-                sy = (sourceHeight - sh) / 2;
-            }
-
-            context.save();
-            if (scaleExtra !== 1) {
-                context.translate(targetWidth / 2, targetHeight / 2);
-                context.scale(scaleExtra, scaleExtra);
-                context.translate(-targetWidth / 2, -targetHeight / 2);
-            }
-            context.drawImage(media, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
-            context.restore();
-        }
-
-        function syncActiveSegmentVideo(activeIndex, currentTime) {
-            if (activeIndex < 0 || !state.segments[activeIndex]) return null;
-            const seg = state.segments[activeIndex];
-            const video = loadedVideos[activeIndex];
-            if (!video || video.readyState < 2) return video;
-
-            const player = document.getElementById('audioPlayer');
-            const playbackRate = player?.playbackRate || 1;
-            const localTime = Math.max(0, currentTime - seg.startTime);
-            const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
-
-            if (activeVideoIndex !== activeIndex) {
-                loadedVideos.forEach((v, idx) => {
-                    if (v && idx !== activeIndex) {
-                        try { v.pause(); } catch (_) {}
-                    }
-                });
-
-                if (duration > 0) {
-                    try { video.currentTime = localTime % duration; } catch (_) {}
-                }
-                activeVideoIndex = activeIndex;
-            } else if (duration > 0) {
-                const desired = localTime % duration;
-                const drift = Math.abs((video.currentTime || 0) - desired);
-                if (drift > 0.65 && drift < Math.max(1, duration - 0.25)) {
-                    try { video.currentTime = desired; } catch (_) {}
-                }
-            }
-
-            try { video.playbackRate = Math.min(4, Math.max(0.25, playbackRate)); } catch (_) {}
-            if (video.paused) {
-                video.play().catch(() => {});
-            }
-            return video;
+            loadedImages = state.segments.map(seg => {
+                if (!seg.imageUrl) return null;
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = seg.imageUrl;
+                return img;
+            });
         }
 
         function updateCanvasStyle() {
@@ -2203,9 +1997,11 @@ ${rawText}`;
         function drawCanvasFrame(currentTime) {
             if (!ctx) return;
 
+            // Clear Background
             ctx.fillStyle = '#0b0d17';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Find Active Segment based on currentTime
             let activeIndex = state.segments.findIndex(s => currentTime >= s.startTime && currentTime <= s.endTime);
             if (activeIndex === -1 && state.segments.length > 0) {
                 let closestIndex = 0;
@@ -2223,71 +2019,79 @@ ${rawText}`;
             }
 
             const seg = state.segments[activeIndex];
-            const video = syncActiveSegmentVideo(activeIndex, currentTime);
+            const img = loadedImages[activeIndex];
 
             const transitionEffect = document.getElementById('transitionSelect')?.value || 'fade';
-            const fadeDuration = 1.15;
-            let backgroundDrawn = false;
+            const fadeDuration = 1.2;
 
-            if (video && video.readyState >= 2 && video.videoWidth > 0) {
-                let progress = 1;
+            // Draw Background Image with Transitions
+            if (img && img.complete && img.naturalWidth !== 0) {
                 let showPrev = false;
-                let prevVideo = null;
+                let prevImg = null;
+                let progress = 1.0;
 
-                if (transitionEffect === 'fade' && activeIndex > 0 && seg) {
-                    const timeInSeg = Math.max(0, currentTime - seg.startTime);
+                if (transitionEffect === 'fade' && activeIndex > 0) {
+                    const timeInSeg = currentTime - seg.startTime;
                     if (timeInSeg < fadeDuration) {
-                        prevVideo = loadedVideos[activeIndex - 1];
-                        if (prevVideo && prevVideo.readyState >= 2 && prevVideo.videoWidth > 0) {
+                        prevImg = loadedImages[activeIndex - 1];
+                        if (prevImg && prevImg.complete && prevImg.naturalWidth !== 0) {
                             showPrev = true;
-                            progress = Math.min(1, Math.max(0, timeInSeg / fadeDuration));
+                            progress = timeInSeg / fadeDuration;
                         }
                     }
                 }
 
-                const segDuration = seg ? Math.max(1, seg.endTime - seg.startTime) : 1;
-                const localTime = seg ? Math.max(0, currentTime - seg.startTime) : 0;
-                const zoomProgress = Math.min(1, localTime / segDuration);
-                const zoomScale = (transitionEffect === 'zoom' || transitionEffect === 'fade')
-                    ? 1 + (0.025 * zoomProgress)
-                    : 1;
+                // Helper to draw image with Ken Burns zoom if enabled
+                const drawImgWithZoom = (targetImg, timeOffset, segDur) => {
+                    ctx.save();
+                    if (transitionEffect === 'zoom' || transitionEffect === 'fade') {
+                        // Ken Burns Zoom: Movimiento continuo fluido y cinemático
+                        const ratio = Math.min(1.0, Math.max(0, timeOffset / Math.max(1, segDur)));
+                        // Aceleración y desaceleración suave (sinusoidal easing)
+                        const smoothRatio = 0.5 - 0.5 * Math.cos(ratio * Math.PI);
+                        const scale = 1.0 + 0.08 * smoothRatio;
+                        
+                        ctx.translate(canvas.width / 2, canvas.height / 2);
+                        ctx.scale(scale, scale);
+                        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                    }
+                    ctx.drawImage(targetImg, 0, 0, canvas.width, canvas.height);
+                    ctx.restore();
+                };
 
-                if (showPrev && prevVideo) {
-                    drawMediaCover(ctx, prevVideo, canvas.width, canvas.height, 1.02);
+                // Draw previous image if crossfading
+                if (showPrev && prevImg) {
+                    const prevSeg = state.segments[activeIndex - 1];
+                    const prevDur = prevSeg.endTime - prevSeg.startTime;
+                    const prevTimeOffset = currentTime - prevSeg.startTime;
+                    drawImgWithZoom(prevImg, prevTimeOffset, prevDur);
+
+                    // Overlay current image with opacity
                     ctx.save();
                     ctx.globalAlpha = progress;
-                    drawMediaCover(ctx, video, canvas.width, canvas.height, zoomScale);
+                    drawImgWithZoom(img, currentTime - seg.startTime, seg.endTime - seg.startTime);
                     ctx.restore();
                 } else {
-                    drawMediaCover(ctx, video, canvas.width, canvas.height, zoomScale);
+                    drawImgWithZoom(img, currentTime - seg.startTime, seg.endTime - seg.startTime);
                 }
 
-                backgroundDrawn = true;
-
+                // Dark Gradient Overlay for readability
                 const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                grad.addColorStop(0, 'rgba(0,0,0,0.24)');
-                grad.addColorStop(0.5, 'rgba(0,0,0,0.34)');
-                grad.addColorStop(1, 'rgba(0,0,0,0.68)');
+                grad.addColorStop(0, 'rgba(0,0,0,0.3)');
+                grad.addColorStop(0.5, 'rgba(0,0,0,0.4)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.7)');
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
-            if (!backgroundDrawn) {
-                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, 1500);
-                grad.addColorStop(0, '#1e3a5f');
-                grad.addColorStop(0.45, '#172554');
+            } else {
+                // Placeholder background if image not generated yet
+                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 100, canvas.width/2, canvas.height/2, 1200);
+                grad.addColorStop(0, '#1e1b4b');
                 grad.addColorStop(1, '#09090b');
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.fillStyle = 'rgba(255,255,255,0.65)';
-                ctx.font = "600 54px 'Montserrat', sans-serif";
-                ctx.fillText('Seleccioná los videos 4K en el Paso 2', canvas.width / 2, canvas.height * 0.82);
-                ctx.restore();
             }
 
+             // Draw Subtitles Lyrics (4K proportions)
             if (seg && seg.text) {
                 const textLines = seg.text.split('\n')
                     .map(line => formatLyricsLine(line))
@@ -2297,19 +2101,23 @@ ${rawText}`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
+                    // Determine maximum line width to see if we need to auto-shrink the font
                     let originalSize = parseInt(state.canvasStyle.fontSize);
                     let currentSize = originalSize;
                     ctx.font = `bold ${currentSize}px ${state.canvasStyle.fontFamily}`;
-
-                    const maxAllowedWidth = canvas.width - 260;
+                    
+                    const maxAllowedWidth = canvas.width - 260; // 130px safe area margin on each side
+                    
                     let maxLineWidth = 0;
                     textLines.forEach(line => {
                         const w = ctx.measureText(line).width;
                         if (w > maxLineWidth) maxLineWidth = w;
                     });
-
+                    
                     if (maxLineWidth > maxAllowedWidth) {
+                        // Reduce font size proportionally so it fits exactly
                         currentSize = Math.floor(originalSize * (maxAllowedWidth / maxLineWidth));
+                        // Keep a sensible minimum font size
                         currentSize = Math.max(50, currentSize);
                         ctx.font = `bold ${currentSize}px ${state.canvasStyle.fontFamily}`;
                     }
@@ -2320,39 +2128,39 @@ ${rawText}`;
                     textLines.forEach((line, idx) => {
                         const y = startY + (idx * lineHeight);
                         const isInstrumental = line.startsWith('♫');
-
+                        
                         ctx.save();
                         if (isInstrumental) {
+                            // Estilo instrumental dorado e itálica
                             ctx.font = `italic bold ${Math.round(currentSize * 0.85)}px ${state.canvasStyle.fontFamily}`;
                             ctx.shadowColor = 'rgba(0,0,0,0.5)';
                             ctx.shadowBlur = 15;
-                            ctx.fillStyle = '#f59e0b';
+                            ctx.fillStyle = '#f59e0b'; // Color oro elegante
                         } else {
+                            // Glow Effect normal
                             ctx.shadowColor = state.canvasStyle.glowColor;
                             ctx.shadowBlur = 45;
                             ctx.fillStyle = state.canvasStyle.textColor;
                         }
-
-                        // Stroke primero para conservar nitidez sobre video en movimiento.
-                        ctx.shadowBlur = 0;
-                        ctx.strokeStyle = 'rgba(0,0,0,0.88)';
-                        ctx.lineWidth = 10;
-                        ctx.strokeText(line, canvas.width / 2, y);
-
-                        if (!isInstrumental) {
-                            ctx.shadowColor = state.canvasStyle.glowColor;
-                            ctx.shadowBlur = 34;
-                        }
+                        
                         ctx.fillText(line, canvas.width / 2, y);
+                        
+                        // Reset shadow for stroke
+                        ctx.shadowBlur = 0;
+                        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+                        ctx.lineWidth = 8;
+                        ctx.strokeText(line, canvas.width / 2, y);
                         ctx.restore();
                     });
                 }
             }
 
+            // Draw Celestial Particles if enabled
             if (document.getElementById('showParticlesCheckbox')?.checked) {
                 drawParticles(ctx, canvas.width, canvas.height);
             }
 
+            // Draw Watermark if enabled
             if (document.getElementById('showWatermarkCheckbox')?.checked && watermarkImg.complete && watermarkImg.naturalWidth !== 0) {
                 ctx.save();
                 ctx.globalAlpha = 0.85;
@@ -2406,16 +2214,6 @@ ${rawText}`;
             if (!player.src) {
                 alert('No hay audio cargado.');
                 return;
-            }
-
-            if (!state.segments.some(seg => seg.videoUrl)) {
-                alert('Primero busca/asigna los videos 4K de fondo en el Paso 2.');
-                goToStep(2);
-                return;
-            }
-
-            if (loadedVideos.length !== state.segments.length) {
-                preloadSegmentVideos();
             }
 
             const speed = parseFloat(document.getElementById('renderSpeedSelect')?.value || 1);
@@ -2673,7 +2471,6 @@ ${rawText}`;
         }
 
         let onTheFlyBgImg = null;
-        let onTheFlyThumbVideo = null;
 
         function drawThumbnailCanvas() {
             try {
@@ -2685,30 +2482,23 @@ ${rawText}`;
                 tCtx.fillStyle = '#0b0d17';
                 tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
 
-                let bgImg = (loadedVideos && loadedVideos[0] && loadedVideos[0].readyState >= 2) ? loadedVideos[0] : null;
+                let bgImg = (loadedImages && loadedImages[0]) ? loadedImages[0] : null;
 
-                // Usa un frame del primer video 4K como base de la miniatura.
-                if (!bgImg && state.segments && state.segments[0] && state.segments[0].videoUrl) {
-                    if (!onTheFlyThumbVideo) {
-                        onTheFlyThumbVideo = document.createElement('video');
-                        onTheFlyThumbVideo.crossOrigin = 'anonymous';
-                        onTheFlyThumbVideo.muted = true;
-                        onTheFlyThumbVideo.playsInline = true;
-                        onTheFlyThumbVideo.preload = 'auto';
-                        onTheFlyThumbVideo.addEventListener('loadeddata', () => drawThumbnailCanvas());
-                        onTheFlyThumbVideo.src = state.segments[0].videoUrl;
-                        onTheFlyThumbVideo.load();
+                // On-the-fly preloader if loadedImages is empty or not loaded yet
+                if (!bgImg && state.segments && state.segments[0] && state.segments[0].imageUrl) {
+                    if (!onTheFlyBgImg) {
+                        onTheFlyBgImg = new Image();
+                        onTheFlyBgImg.crossOrigin = "anonymous";
+                        onTheFlyBgImg.onload = () => {
+                            drawThumbnailCanvas();
+                        };
+                        onTheFlyBgImg.src = state.segments[0].imageUrl;
                     }
-                    if (onTheFlyThumbVideo.readyState >= 2) bgImg = onTheFlyThumbVideo;
+                    bgImg = onTheFlyBgImg;
                 }
 
-                const bgReady = bgImg && (
-                    (bgImg.videoWidth && bgImg.videoHeight) ||
-                    (bgImg.complete && bgImg.naturalWidth !== 0)
-                );
-
-                if (bgReady) {
-                    drawMediaCover(tCtx, bgImg, tCanvas.width, tCanvas.height, 1);
+                if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
+                    tCtx.drawImage(bgImg, 0, 0, tCanvas.width, tCanvas.height);
                     // Cinematic vignette & gradient overlay
                     const grad = tCtx.createRadialGradient(tCanvas.width/2, tCanvas.height/2, 200, tCanvas.width/2, tCanvas.height/2, 800);
                     grad.addColorStop(0, 'rgba(0,0,0,0.2)');
@@ -3203,63 +2993,36 @@ ${rawText}`;
 
         async function generateCompilationBackgrounds() {
             const btn = document.getElementById('btnGenCompImg');
-
-            if (!state.keys.pexels) {
-                alert('Configura tu Pexels API Key para buscar los fondos 4K de la compilación.');
-                toggleModal('settingsModal', true);
-                return;
-            }
-
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Buscando Videos 4K...`;
+                btn.innerHTML = `<i data-lucide="loader-2" class="loading-spinner"></i> Generando Fondos 4K...`;
                 lucide.createIcons();
             }
 
-            const baseQuery = document.getElementById('compPromptInput')?.value.trim() || 'peaceful mountains sunset';
-            const queryVariants = [
-                baseQuery,
-                'mountain sunset landscape',
-                'ocean sunrise peaceful',
-                'forest sun rays nature',
-                'clouds golden hour landscape',
-                'lake mountains sunrise'
-            ];
+            const promptText = document.getElementById('compPromptInput')?.value || '4K UHD, pure nature landscape photography, peaceful mountains at sunset, serene alpine lake, dramatic volumetric clouds, golden sunbeams, no people, no text';
+            const cleanPrompt = promptText.normalize("NFD")
+                                          .replace(/[\u0300-\u036f]/g, "") // Remueve acentos
+                                          .replace(/[^a-zA-Z0-9 ,.-]/g, "") // Remueve especiales
+                                          .trim();
 
-            state.compilationVideos.forEach(item => {
-                try { item.element?.pause(); } catch (_) {}
+            state.compilationImages = [];
+            const promises = Array.from({ length: 6 }).map(() => {
+                const seed = Math.floor(Math.random() * 100000);
+                const rawUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=576&nologo=true&seed=${seed}`;
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.onload = () => { state.compilationImages.push(img); resolve(); };
+                    img.onerror = () => resolve();
+                    img.src = rawUrl;
+                });
             });
-            state.compilationVideos = [];
-
-            const usedIds = [];
-            for (const query of queryVariants) {
-                try {
-                    const found = await searchPexels4KVideo(query, usedIds);
-                    usedIds.push(found.id);
-
-                    const video = document.createElement('video');
-                    video.crossOrigin = 'anonymous';
-                    video.muted = true;
-                    video.loop = true;
-                    video.playsInline = true;
-                    video.preload = 'auto';
-                    video.src = found.link;
-                    await waitForVideoReady(video, 12000);
-
-                    state.compilationVideos.push({ ...found, element: video });
-                } catch (err) {
-                    console.warn('No se pudo cargar un video de compilación:', err);
-                }
-            }
+            await Promise.all(promises);
 
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="check"></i> ¡${state.compilationVideos.length} Videos 4K Listos!`;
+                btn.innerHTML = `<i data-lucide="check"></i> ¡${state.compilationImages.length} Fondos Celestiales Listos!`;
                 lucide.createIcons();
-            }
-
-            if (!state.compilationVideos.length) {
-                alert('No se pudieron obtener videos 4K de Pexels. Revisa la API Key y el diagnóstico.');
             }
         }
 
@@ -3275,13 +3038,8 @@ ${rawText}`;
             progressBox.innerText = 'Iniciando renderizado de la compilación de oración...';
             if (btn) btn.disabled = true;
 
-            if (state.compilationVideos.length === 0) {
+            if (state.compilationImages.length === 0) {
                 await generateCompilationBackgrounds();
-            }
-            if (state.compilationVideos.length === 0) {
-                progressBox.innerText = 'No hay videos 4K disponibles para la compilación.';
-                if (btn) btn.disabled = false;
-                return;
             }
 
             const compCanvas = document.createElement('canvas');
@@ -3338,40 +3096,26 @@ ${rawText}`;
             const workerUrl = URL.createObjectURL(workerBlob);
             const recordingWorker = new Worker(workerUrl);
 
-            // Render loop con pequeños clips 4K de paisaje
+            // Render loop animation background for compilation
             let currentImgIdx = 0;
             let lastSlideTime = Date.now();
 
-            if (state.compilationVideos[0]?.element) {
-                state.compilationVideos[0].element.currentTime = 0;
-                state.compilationVideos[0].element.play().catch(() => {});
-            }
-
             function drawCompFrame() {
                 const now = Date.now();
-                if (now - lastSlideTime > 18000 && state.compilationVideos.length > 0) {
-                    const previous = state.compilationVideos[currentImgIdx]?.element;
-                    try { previous?.pause(); } catch (_) {}
-
-                    currentImgIdx = (currentImgIdx + 1) % state.compilationVideos.length;
+                if (now - lastSlideTime > 25000 && state.compilationImages.length > 0) { // Change slide every 25s
+                    currentImgIdx = (currentImgIdx + 1) % state.compilationImages.length;
                     lastSlideTime = now;
-
-                    const next = state.compilationVideos[currentImgIdx]?.element;
-                    if (next) {
-                        try { next.currentTime = 0; } catch (_) {}
-                        next.play().catch(() => {});
-                    }
                 }
 
-                const bgVideo = state.compilationVideos[currentImgIdx]?.element;
+                const bgImg = state.compilationImages[currentImgIdx];
                 compCtx.fillStyle = '#0b0d17';
                 compCtx.fillRect(0, 0, compCanvas.width, compCanvas.height);
 
-                if (bgVideo && bgVideo.readyState >= 2 && bgVideo.videoWidth > 0) {
-                    drawMediaCover(compCtx, bgVideo, compCanvas.width, compCanvas.height, 1.015);
+                if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
+                    compCtx.drawImage(bgImg, 0, 0, compCanvas.width, compCanvas.height);
                     const grad = compCtx.createLinearGradient(0, 0, 0, compCanvas.height);
-                    grad.addColorStop(0, 'rgba(0,0,0,0.28)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.68)');
+                    grad.addColorStop(0, 'rgba(0,0,0,0.3)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.7)');
                     compCtx.fillStyle = grad;
                     compCtx.fillRect(0, 0, compCanvas.width, compCanvas.height);
                 }
@@ -3607,19 +3351,19 @@ ${rawText}`;
                 }
 
                 const seg = state.segments[activeIndex];
-                const bgVideo = syncActiveSegmentVideo(activeIndex, curTime);
+                const img = loadedImages[activeIndex];
 
                 sCtx.fillStyle = '#09090b';
                 sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
 
-                if (bgVideo && bgVideo.readyState >= 2 && bgVideo.videoWidth > 0) {
-                    drawMediaCover(sCtx, bgVideo, sCanvas.width, sCanvas.height, 1.01);
+                if (img && img.complete && img.naturalWidth !== 0) {
+                    sCtx.drawImage(img, (sCanvas.width - sCanvas.height * (img.naturalWidth/img.naturalHeight))/2, 0, sCanvas.height * (img.naturalWidth/img.naturalHeight), sCanvas.height);
                     // Overlay dark gradient only in the lower third for text readability
-                    const grad = sCtx.createLinearGradient(0, sCanvas.height * 0.55, 0, sCanvas.height);
+                    const grad = sCtx.createLinearGradient(0, sCanvas.height * 0.6, 0, sCanvas.height);
                     grad.addColorStop(0, 'rgba(0,0,0,0)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.68)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.65)');
                     sCtx.fillStyle = grad;
-                    sCtx.fillRect(0, sCanvas.height * 0.55, sCanvas.width, sCanvas.height * 0.45);
+                    sCtx.fillRect(0, sCanvas.height * 0.6, sCanvas.width, sCanvas.height * 0.4);
                 }
 
                 // Dibujar Partículas Celestiales en el Short para que se vea genial y profesional
