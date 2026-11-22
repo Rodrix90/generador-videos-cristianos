@@ -771,7 +771,7 @@
                     <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">Segmentación y Prompts de Imágenes IA</h2>
                     <p style="color: var(--text-muted); margin-bottom: 0.4rem;">Ajusta los tiempos exactos de cada estrofa para sincronizarlos perfectamente con el audio.</p>
                     <p style="color: #f59e0b; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin: 0;">
-                        ⚠️ Si las imágenes aparecen rotas, desactiva los "Escudos de Brave" (Shields) o tu bloqueador de anuncios para esta web.
+                        🏔️ Imágenes de paisajes naturales en ultra alta definición (4K/1080p) con animación continua y fluida.
                     </p>
                 </div>
                 <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
@@ -1362,9 +1362,10 @@
             <div class="form-group">
                 <label>Generador de Imágenes por Defecto</label>
                 <select id="imageGeneratorEngine" onchange="toggleEngineKeyInput()">
-                    <option value="pollinations">Pollinations.ai (Gratis / Sin API Key)</option>
-                    <option value="stability">Stability AI SDXL (Requiere Key)</option>
-                    <option value="openai">OpenAI DALL-E 3 (Requiere Key - Ultra Específico)</option>
+                    <option value="landscape_hd" selected>🏔️ Paisajes Naturales HD (Gratis / Sin Límites / 100% Confiable)</option>
+                    <option value="pollinations">✨ Pollinations AI (Modelo Sana - Gratis)</option>
+                    <option value="stability">🎨 Stability AI SDXL (Requiere Key)</option>
+                    <option value="openai">🤖 OpenAI DALL-E 3 (Requiere Key)</option>
                 </select>
             </div>
 
@@ -1410,7 +1411,7 @@
                 stability: '',
                 openai: '',
                 googleClientId: '',
-                engine: 'pollinations'
+                engine: 'landscape_hd'
             },
             isPlaying: false,
             mediaRecorder: null,
@@ -1437,7 +1438,7 @@
             state.keys.stability = localStorage.getItem('yt_stability_key') || '';
             state.keys.openai = localStorage.getItem('yt_openai_key') || '';
             state.keys.googleClientId = localStorage.getItem('yt_google_client_id') || '';
-            state.keys.engine = localStorage.getItem('yt_img_engine') || 'pollinations';
+            state.keys.engine = localStorage.getItem('yt_img_engine') || 'landscape_hd';
 
             document.getElementById('anthropicKey').value = state.keys.anthropic;
             document.getElementById('stabilityKey').value = state.keys.stability;
@@ -3006,15 +3007,18 @@ ${rawText}`;
                                           .trim();
 
             state.compilationImages = [];
-            const promises = Array.from({ length: 6 }).map(() => {
-                const seed = Math.floor(Math.random() * 100000);
-                const rawUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=576&nologo=true&seed=${seed}`;
+            // Seleccionar 8 fondos majestuosos de paisajes naturales
+            const selectedLandscapes = [
+                LANDSCAPE_PHOTOS[0], LANDSCAPE_PHOTOS[1], LANDSCAPE_PHOTOS[2], LANDSCAPE_PHOTOS[3],
+                LANDSCAPE_PHOTOS[4], LANDSCAPE_PHOTOS[5], LANDSCAPE_PHOTOS[9], LANDSCAPE_PHOTOS[13]
+            ];
+            const promises = selectedLandscapes.map(url => {
                 return new Promise((resolve) => {
                     const img = new Image();
                     img.crossOrigin = "anonymous";
                     img.onload = () => { state.compilationImages.push(img); resolve(); };
                     img.onerror = () => resolve();
-                    img.src = rawUrl;
+                    img.src = url;
                 });
             });
             await Promise.all(promises);
