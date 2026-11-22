@@ -1451,7 +1451,51 @@
             lucide.createIcons();
             loadSettings();
             setupDragAndDrop();
+            restoreCachedSession();
         });
+
+        function restoreCachedSession() {
+            const savedLyrics = localStorage.getItem('yt_cached_lyrics');
+            const savedTitle = localStorage.getItem('yt_cached_title');
+            const savedHymnNum = localStorage.getItem('yt_cached_hymn_num');
+
+            if (savedLyrics && document.getElementById('lyricsTextarea')) {
+                document.getElementById('lyricsTextarea').value = savedLyrics;
+                state.lyrics = savedLyrics;
+            }
+            if (savedTitle && document.getElementById('songTitleInput')) {
+                document.getElementById('songTitleInput').value = savedTitle;
+            }
+            if (savedHymnNum && document.getElementById('hymnNumberInput')) {
+                document.getElementById('hymnNumberInput').value = savedHymnNum;
+            }
+
+            // Auto-guardar mientras se escribe
+            const lyricsEl = document.getElementById('lyricsTextarea');
+            if (lyricsEl) {
+                lyricsEl.addEventListener('input', () => {
+                    state.lyrics = lyricsEl.value;
+                    localStorage.setItem('yt_cached_lyrics', lyricsEl.value);
+                });
+            }
+            const titleEl = document.getElementById('songTitleInput');
+            if (titleEl) {
+                titleEl.addEventListener('input', () => {
+                    localStorage.setItem('yt_cached_title', titleEl.value);
+                });
+            }
+            const numEl = document.getElementById('hymnNumberInput');
+            if (numEl) {
+                numEl.addEventListener('input', () => {
+                    localStorage.setItem('yt_cached_hymn_num', numEl.value);
+                });
+            }
+
+            // Si hay letra guardada, pre-segmentar de inmediato para que el Paso 2 siempre tenga estrofas
+            if (state.lyrics && state.lyrics.trim().length > 0 && state.segments.length === 0) {
+                autoSegmentLyrics();
+            }
+        }
 
         function toggleModal(modalId, show) {
             const modal = document.getElementById(modalId);
@@ -1540,6 +1584,20 @@
             if (stepNumber === 2) {
                 const p2 = document.getElementById('audioPlayerStep2');
                 if (p2 && state.audioUrl) p2.src = state.audioUrl;
+
+                const textInBox = document.getElementById('lyricsTextarea')?.value?.trim() || '';
+                if (textInBox) {
+                    state.lyrics = textInBox;
+                    localStorage.setItem('yt_cached_lyrics', textInBox);
+                }
+
+                if (state.segments.length === 0) {
+                    if (state.lyrics && state.lyrics.trim().length > 0) {
+                        autoSegmentLyrics();
+                    } else {
+                        renderSegments();
+                    }
+                }
             }
             if (stepNumber === 3) {
                 initCanvasStudio();
@@ -1671,7 +1729,18 @@
 
         // Auto-Segmentation & Prompts with Claude or Fallback
         async function autoSegmentLyrics() {
+            const txtFromInput = document.getElementById('lyricsTextarea')?.value?.trim();
+            if (txtFromInput) {
+                state.lyrics = txtFromInput;
+                localStorage.setItem('yt_cached_lyrics', txtFromInput);
+            }
+
             const rawText = state.lyrics;
+            if (!rawText || rawText.trim().length === 0) {
+                renderSegments();
+                return;
+            }
+
             const duration = state.audioDuration || 180; // Default 3 mins if not loaded
             const introOffset = parseFloat(document.getElementById('introOffsetInput')?.value || 5);
 
@@ -1783,6 +1852,21 @@ ${rawText}`;
         function renderSegments() {
             const container = document.getElementById('segmentsList');
             container.innerHTML = '';
+
+            if (!state.segments || state.segments.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem 1.5rem; background: rgba(0,0,0,0.25); border: 2px dashed var(--border); border-radius: var(--radius-md);">
+                        <i data-lucide="file-text" style="width: 44px; height: 44px; color: #60a5fa; margin-bottom: 0.75rem;"></i>
+                        <h3 style="font-family: var(--font-title); font-size: 1.15rem; margin-bottom: 0.4rem;">No hay estrofas generadas todavía</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; max-width: 480px; margin: 0 auto 1.25rem;">Pega la letra completa de tu canción en el Paso 1 y haz clic en <strong>"Siguiente: Procesar con IA"</strong> para que se divida en estrofas automáticamente.</p>
+                        <button class="btn btn-accent btn-sm" onclick="goToStep(1)">
+                            <i data-lucide="arrow-left"></i> Ir al Paso 1 a Ingresar Letra
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
 
             state.segments.forEach((seg, index) => {
                 const card = document.createElement('div');
