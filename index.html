@@ -798,6 +798,22 @@
                 </div>
             </div>
 
+            <div style="background: rgba(96, 165, 250, 0.08); border: 1px solid rgba(96, 165, 250, 0.35); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 280px;">
+                    <i data-lucide="key" style="color: #60a5fa; width: 22px; height: 22px;"></i>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.85rem; font-weight: 700; color: #60a5fa; margin: 0; display: block;">Pexels API Key (Para buscar fotos de paisajes):</label>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Ingresa tu API Key para buscar fotos de paisajes en Pexels. <a href="https://www.pexels.com/api/" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: underline;">Obtener API Key gratuita de Pexels ↗</a></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex: 1; min-width: 260px; max-width: 450px;">
+                    <input type="password" id="pexelsKeyDirect" placeholder="Pega tu Pexels API Key aquí..." style="padding: 0.45rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-sm);" oninput="updateDirectPexelsKey(this.value)">
+                    <button class="btn btn-primary btn-sm" onclick="saveDirectPexelsKey()" style="white-space: nowrap;">
+                        <i data-lucide="save"></i> Guardar Key
+                    </button>
+                </div>
+            </div>
+
             <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
                 <i data-lucide="volume-2" style="color: var(--accent);"></i>
                 <div style="flex: 1;">
@@ -1443,6 +1459,25 @@
             else modal.classList.remove('active');
         }
 
+        
+        function updateDirectPexelsKey(val) {
+            state.keys.pexels = val.trim();
+            localStorage.setItem('yt_pexels_key', state.keys.pexels);
+            if (document.getElementById('pexelsKey')) document.getElementById('pexelsKey').value = state.keys.pexels;
+            if (document.getElementById('pexelsKeyDirect')) document.getElementById('pexelsKeyDirect').value = state.keys.pexels;
+        }
+
+        function saveDirectPexelsKey() {
+            const input = document.getElementById('pexelsKeyDirect');
+            if (input) {
+                state.keys.pexels = input.value.trim();
+                localStorage.setItem('yt_pexels_key', state.keys.pexels);
+                if (document.getElementById('pexelsKey')) document.getElementById('pexelsKey').value = state.keys.pexels;
+            if (document.getElementById('pexelsKeyDirect')) document.getElementById('pexelsKeyDirect').value = state.keys.pexels;
+                alert('✅ Pexels API Key guardada correctamente. Ya puedes buscar tus paisajes.');
+            }
+        }
+
         function loadSettings() {
             state.keys.anthropic = localStorage.getItem('yt_anthropic_key') || '';
             state.keys.pexels = localStorage.getItem('yt_pexels_key') || '';
@@ -1460,6 +1495,7 @@
 
             document.getElementById('anthropicKey').value = state.keys.anthropic;
             if (document.getElementById('pexelsKey')) document.getElementById('pexelsKey').value = state.keys.pexels;
+            if (document.getElementById('pexelsKeyDirect')) document.getElementById('pexelsKeyDirect').value = state.keys.pexels;
             document.getElementById('stabilityKey').value = state.keys.stability;
             document.getElementById('openaiKey').value = state.keys.openai;
             document.getElementById('googleClientId').value = state.keys.googleClientId;
