@@ -2446,61 +2446,11 @@ ${rawText}`;
             }
         }
 
-        // WebMediaRecorder Video Export (4K 15Mbps)
-        function startRecordingVideo() {
-            const player = document.getElementById('audioPlayer');
-            if (!player.src) {
-                alert('No hay audio cargado.');
-                return;
-            }
+        
+        // Persistent Web Audio references to prevent V8 Garbage Collection mid-recording
+        window._activeAudioNodes = window._activeAudioNodes || [];
 
-            const speed = parseFloat(document.getElementById('renderSpeedSelect')?.value || 1);
-            player.currentTime = 0;
-            player.playbackRate = speed;
-
-            const stream = canvas.captureStream(30); // 30 FPS
-
-            // Connect Audio to Stream via Web Audio API using a shared cached Source/Context
-            if (!state.audioCtx) {
-                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (state.audioCtx.state === 'suspended') {
-                state.audioCtx.resume();
-            }
-
-            let source = player._audioSourceNode;
-            if (!source) {
-                source = state.audioCtx.createMediaElementSource(player);
-                player._audioSourceNode = source;
-                
-                const dest = state.audioCtx.createMediaStreamDestination();
-                player._audioStreamDest = dest;
-                
-                source.connect(dest);
-                source.connect(state.audioCtx.destination);
-            }
-            const dest = player._audioStreamDest;
-
-            // Clear any existing tracks on stream first, then add the new one
-            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
-
-            state.recordedChunks = [];
-            const options = { 
-                mimeType: 'video/webm;codecs=vp9,opus',
-                videoBitsPerSecond: 15000000 // 15 Mbps for ultra-sharp 4K UHD
-            };
-            try {
-                state.mediaRecorder = new MediaRecorder(stream, options);
-            } catch (e) {
-                state.mediaRecorder = new MediaRecorder(stream);
-            }
-
-            state.mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) state.recordedChunks.push(e.data);
-            };
-
-            // Setup Background Web Worker to prevent tab throttling
+        function createRecordingWorker() {
             const workerCode = `
                 let timer = null;
                 self.onmessage = function(e) {
@@ -2518,8 +2468,95 @@ ${rawText}`;
                 };
             `;
             const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
-            const workerUrl = URL.createObjectURL(workerBlob);
-            const recordingWorker = new Worker(workerUrl);
+            return new Worker(URL.createObjectURL(workerBlob));
+        }
+
+        function setupRecordingAudioStream(player, stream) {
+            if (!state.audioCtx) {
+                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (state.audioCtx.state === 'suspended') {
+                state.audioCtx.resume();
+            }
+
+            // Create or reuse the single source node for this HTMLMediaElement
+            if (!player._audioSourceNode) {
+                player._audioSourceNode = state.audioCtx.createMediaElementSource(player);
+                player._audioSourceNode.connect(state.audioCtx.destination);
+            }
+
+            // ALWAYS create a fresh MediaStreamDestination for every new recording
+            if (player._audioStreamDest) {
+                try {
+                    player._audioSourceNode.disconnect(player._audioStreamDest);
+                } catch (e) {}
+            }
+
+            const freshDest = state.audioCtx.createMediaStreamDestination();
+            player._audioStreamDest = freshDest;
+            player._audioSourceNode.connect(freshDest);
+
+            // Silent keep-alive oscillator to prevent Chromium from muting or dropping idle audio tracks
+            const osc = state.audioCtx.createOscillator();
+            const gain = state.audioCtx.createGain();
+            gain.gain.value = 0.0001; // virtually inaudible
+            osc.connect(gain);
+            gain.connect(freshDest);
+            try { osc.start(); } catch (e) {}
+
+            // Store in global window array so V8 Garbage Collector CANNOT sweep them away
+            window._activeAudioNodes = [
+                state.audioCtx,
+                player._audioSourceNode,
+                freshDest,
+                osc,
+                gain
+            ];
+
+            // Remove any old audio tracks from the stream and attach the fresh track
+            stream.getAudioTracks().forEach(t => {
+                stream.removeTrack(t);
+                try { t.stop(); } catch (e) {}
+            });
+            freshDest.stream.getAudioTracks().forEach(track => {
+                stream.addTrack(track);
+            });
+
+            return freshDest;
+        }
+
+        // WebMediaRecorder Video Export (4K 15Mbps)
+        function startRecordingVideo() {
+            const player = document.getElementById('audioPlayer');
+            if (!player.src) {
+                alert('No hay audio cargado.');
+                return;
+            }
+
+            const speed = parseFloat(document.getElementById('renderSpeedSelect')?.value || 1);
+            player.currentTime = 0;
+            player.playbackRate = speed;
+
+            const stream = canvas.captureStream(30); // 30 FPS
+
+            setupRecordingAudioStream(player, stream);
+
+            state.recordedChunks = [];
+            const options = { 
+                mimeType: 'video/webm;codecs=vp9,opus',
+                videoBitsPerSecond: 15000000 // 15 Mbps for ultra-sharp 4K UHD
+            };
+            try {
+                state.mediaRecorder = new MediaRecorder(stream, options);
+            } catch (e) {
+                state.mediaRecorder = new MediaRecorder(stream);
+            }
+
+            state.mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) state.recordedChunks.push(e.data);
+            };
+
+            const recordingWorker = createRecordingWorker();
 
             state.mediaRecorder.onstop = () => {
                 recordingWorker.postMessage('stop');
@@ -2551,7 +2588,7 @@ ${rawText}`;
             };
 
             document.getElementById('renderProgress').style.display = 'block';
-            state.mediaRecorder.start();
+            state.mediaRecorder.start(1000);
             player.play();
 
             recordingWorker.onmessage = (e) => {
@@ -3316,26 +3353,7 @@ ${rawText}`;
 
             mediaRecorder.start();
 
-            // Setup Background Web Worker to prevent tab throttling
-            const workerCode = `
-                let timer = null;
-                self.onmessage = function(e) {
-                    if (e.data === 'start') {
-                        if (timer) clearInterval(timer);
-                        timer = setInterval(() => {
-                            self.postMessage('tick');
-                        }, 33.33); // 30 FPS
-                    } else if (e.data === 'stop') {
-                        if (timer) {
-                            clearInterval(timer);
-                            timer = null;
-                        }
-                    }
-                };
-            `;
-            const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
-            const workerUrl = URL.createObjectURL(workerBlob);
-            const recordingWorker = new Worker(workerUrl);
+            const recordingWorker = createRecordingWorker();
 
             // Render loop animation background for compilation
             let currentImgIdx = 0;
@@ -3488,30 +3506,8 @@ ${rawText}`;
             const player = document.getElementById('audioPlayer');
             const stream = sCanvas.captureStream(30);
             
-            // Safe Audio routing
-            if (!state.audioCtx) {
-                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (state.audioCtx.state === 'suspended') {
-                await state.audioCtx.resume();
-            }
-            
-            let source = player._audioSourceNode;
-            if (!source) {
-                source = state.audioCtx.createMediaElementSource(player);
-                player._audioSourceNode = source;
-                
-                const dest = state.audioCtx.createMediaStreamDestination();
-                player._audioStreamDest = dest;
-                
-                source.connect(dest);
-                source.connect(state.audioCtx.destination);
-            }
-            const dest = player._audioStreamDest;
-            
-            // Clear any existing tracks on stream first, then add the new one
-            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+            player.playbackRate = 1.0;
+            setupRecordingAudioStream(player, stream);
 
             const recordedChunks = [];
             let mediaRecorder;
@@ -3542,7 +3538,7 @@ ${rawText}`;
             });
 
             let startTime = null;
-            mediaRecorder.start();
+            mediaRecorder.start(1000);
             try {
                 player.muted = false;
                 await player.play();
@@ -3968,30 +3964,8 @@ ${rawText}`;
 
             const stream = sCanvas.captureStream(30);
 
-            // Connect Audio to Stream via Web Audio API using a shared cached Source/Context
-            if (!state.audioCtx) {
-                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (state.audioCtx.state === 'suspended') {
-                await state.audioCtx.resume();
-            }
-
-            let source = player._audioSourceNode;
-            if (!source) {
-                source = state.audioCtx.createMediaElementSource(player);
-                player._audioSourceNode = source;
-                
-                const dest = state.audioCtx.createMediaStreamDestination();
-                player._audioStreamDest = dest;
-                
-                source.connect(dest);
-                source.connect(state.audioCtx.destination);
-            }
-            const dest = player._audioStreamDest;
-
-            // Clear any existing tracks on stream first, then add the new one
-            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+            player.playbackRate = 1.0;
+            setupRecordingAudioStream(player, stream);
 
             const recordedChunks = [];
             let mediaRecorder;
@@ -4022,7 +3996,8 @@ ${rawText}`;
             });
 
             let startTime = null;
-            mediaRecorder.start();
+            const recordingWorker = createRecordingWorker();
+            mediaRecorder.start(1000);
             try {
                 player.muted = false;
                 await player.play();
@@ -4149,6 +4124,8 @@ ${rawText}`;
             drawFrame();
 
             mediaRecorder.onstop = () => {
+                recordingWorker.postMessage('stop');
+                recordingWorker.terminate();
                 player.pause();
                 animActive = false;
                 
@@ -4300,30 +4277,8 @@ ${rawText}`;
 
             const stream = sCanvas.captureStream(30);
             
-            // Connect Audio to Stream via Web Audio API using a shared cached Source/Context
-            if (!state.audioCtx) {
-                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (state.audioCtx.state === 'suspended') {
-                await state.audioCtx.resume();
-            }
-
-            let source = player._audioSourceNode;
-            if (!source) {
-                source = state.audioCtx.createMediaElementSource(player);
-                player._audioSourceNode = source;
-                
-                const dest = state.audioCtx.createMediaStreamDestination();
-                player._audioStreamDest = dest;
-                
-                source.connect(dest);
-                source.connect(state.audioCtx.destination);
-            }
-            const dest = player._audioStreamDest;
-
-            // Clear any existing tracks on stream first, then add the new one
-            stream.getAudioTracks().forEach(t => stream.removeTrack(t));
-            dest.stream.getAudioTracks().forEach(track => stream.addTrack(track));
+            player.playbackRate = 1.0;
+            setupRecordingAudioStream(player, stream);
 
             const recordedChunks = [];
             let mediaRecorder;
@@ -4428,6 +4383,8 @@ ${rawText}`;
             drawFrame();
 
             mediaRecorder.onstop = () => {
+                recordingWorker.postMessage('stop');
+                recordingWorker.terminate();
                 player.pause();
                 animActive = false;
                 
