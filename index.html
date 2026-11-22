@@ -768,10 +768,10 @@
         <section class="view-content" id="view-step2">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                 <div>
-                    <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">Segmentación y Prompts de Imágenes IA</h2>
-                    <p style="color: var(--text-muted); margin-bottom: 0.4rem;">Ajusta los tiempos exactos de cada estrofa para sincronizarlos perfectamente con el audio.</p>
-                    <p style="color: #f59e0b; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin: 0;">
-                        🏔️ Imágenes de paisajes naturales en ultra alta definición (4K/1080p) con animación continua y fluida.
+                    <h2 style="font-family: var(--font-title); margin-bottom: 0.5rem;">Segmentación e Imágenes de Paisajes (Pexels)</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 0.4rem;">Ajusta los tiempos exactos de cada estrofa y busca fotografías de paisajes en alta definición.</p>
+                    <p style="color: #60a5fa; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; margin: 0;">
+                        📸 Paisajes de alta definición provistos por Pexels con animación Ken Burns fluida. Configura tu Pexels API Key en “API Keys & Configuración”.
                     </p>
                 </div>
                 <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
@@ -790,10 +790,10 @@
                         <i data-lucide="sparkles"></i> Recalcular Tiempos
                     </button>
                     <button class="btn btn-primary btn-sm" onclick="generateAllImages()">
-                        <i data-lucide="image"></i> Generar Todas las Imágenes
+                        <i data-lucide="image"></i> Buscar Todos los Paisajes en Pexels
                     </button>
-                    <button class="btn btn-secondary btn-sm" onclick="runDiagnostics()" id="btnDiagnostics" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">
-                        <i data-lucide="activity"></i> Diagnóstico de Conexión IA
+                    <button class="btn btn-secondary btn-sm" onclick="runPexelsDiagnostics()" id="btnDiagnostics" style="background: rgba(96, 165, 250, 0.15); border-color: rgba(96, 165, 250, 0.4); color: #60a5fa;">
+                        <i data-lucide="activity"></i> Diagnóstico Pexels
                     </button>
                 </div>
             </div>
@@ -1360,6 +1360,15 @@
             </div>
 
             <div class="form-group">
+                <label>Pexels API Key (Búsqueda de Paisajes HD)</label>
+                <input type="password" id="pexelsKey" placeholder="Tu API Key de Pexels">
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; line-height:1.4;">
+                    Se usa para buscar imágenes de paisajes naturales en alta resolución. Se guarda en el localStorage del navegador.
+                    <a href="https://www.pexels.com/api/" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;">Obtener API Key gratuita de Pexels</a>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label>Generador de Imágenes por Defecto</label>
                 <select id="imageGeneratorEngine" onchange="toggleEngineKeyInput()">
                     <option value="landscape_hd" selected>🏔️ Paisajes Naturales HD (Gratis / Sin Límites / 100% Confiable)</option>
@@ -1408,10 +1417,11 @@
             },
             keys: {
                 anthropic: '',
+                pexels: '',
                 stability: '',
                 openai: '',
                 googleClientId: '',
-                engine: 'landscape_hd'
+                engine: 'pexels'
             },
             isPlaying: false,
             mediaRecorder: null,
@@ -1435,6 +1445,7 @@
 
         function loadSettings() {
             state.keys.anthropic = localStorage.getItem('yt_anthropic_key') || '';
+            state.keys.pexels = localStorage.getItem('yt_pexels_key') || '';
             state.keys.stability = localStorage.getItem('yt_stability_key') || '';
             state.keys.openai = localStorage.getItem('yt_openai_key') || '';
             state.keys.googleClientId = localStorage.getItem('yt_google_client_id') || '';
@@ -1448,6 +1459,7 @@
             state.keys.engine = savedEngine;
 
             document.getElementById('anthropicKey').value = state.keys.anthropic;
+            if (document.getElementById('pexelsKey')) document.getElementById('pexelsKey').value = state.keys.pexels;
             document.getElementById('stabilityKey').value = state.keys.stability;
             document.getElementById('openaiKey').value = state.keys.openai;
             document.getElementById('googleClientId').value = state.keys.googleClientId;
@@ -1462,12 +1474,14 @@
 
         function saveSettings() {
             state.keys.anthropic = document.getElementById('anthropicKey').value.trim();
+            if (document.getElementById('pexelsKey')) state.keys.pexels = document.getElementById('pexelsKey').value.trim();
             state.keys.stability = document.getElementById('stabilityKey').value.trim();
             state.keys.openai = document.getElementById('openaiKey').value.trim();
             state.keys.googleClientId = document.getElementById('googleClientId').value.trim();
             state.keys.engine = document.getElementById('imageGeneratorEngine').value;
 
             localStorage.setItem('yt_anthropic_key', state.keys.anthropic);
+            localStorage.setItem('yt_pexels_key', state.keys.pexels);
             localStorage.setItem('yt_stability_key', state.keys.stability);
             localStorage.setItem('yt_openai_key', state.keys.openai);
             localStorage.setItem('yt_google_client_id', state.keys.googleClientId);
@@ -1759,7 +1773,7 @@ ${rawText}`;
                             ${seg.imageUrl ? `<img src="${seg.imageUrl}">` : `<i data-lucide="image" style="color:var(--text-muted);"></i>`}
                         </div>
                         <button class="btn btn-secondary btn-sm" onclick="generateSingleImage(${index})">
-                            <i data-lucide="sparkles"></i> Generar Imagen
+                            <i data-lucide="image"></i> Buscar en Pexels
                         </button>
                     </div>
                 `;
