@@ -1438,7 +1438,14 @@
             state.keys.stability = localStorage.getItem('yt_stability_key') || '';
             state.keys.openai = localStorage.getItem('yt_openai_key') || '';
             state.keys.googleClientId = localStorage.getItem('yt_google_client_id') || '';
-            state.keys.engine = localStorage.getItem('yt_img_engine') || 'landscape_hd';
+
+            // Si el usuario tenía guardado el viejo 'pollinations' bloqueado, migrar automáticamente a 'landscape_hd'
+            let savedEngine = localStorage.getItem('yt_img_engine');
+            if (!savedEngine || savedEngine === 'pollinations') {
+                savedEngine = 'landscape_hd';
+                localStorage.setItem('yt_img_engine', 'landscape_hd');
+            }
+            state.keys.engine = savedEngine;
 
             document.getElementById('anthropicKey').value = state.keys.anthropic;
             document.getElementById('stabilityKey').value = state.keys.stability;
@@ -1647,7 +1654,7 @@
                     startTime: parseFloat(startTime.toFixed(1)),
                     endTime: parseFloat(endTime.toFixed(1)),
                     prompt: generateLocalPromptForText(block.trim()),
-                    imageUrl: null
+                    imageUrl: LANDSCAPE_PHOTOS[(index + 1) % LANDSCAPE_PHOTOS.length]
                 });
             });
 
@@ -1715,7 +1722,7 @@ ${rawText}`;
                     startTime: 0,
                     endTime: introOffset,
                     prompt: "4K UHD, pure nature landscape photography, magnificent sunrise over peaceful mountain lake, morning mist, golden sunbeams, tranquil landscape, no people, no text",
-                    imageUrl: null
+                    imageUrl: LANDSCAPE_PHOTOS[0]
                 });
             }
 
